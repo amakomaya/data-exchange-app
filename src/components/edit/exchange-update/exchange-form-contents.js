@@ -137,7 +137,7 @@ export const ExchangeFormContents = React.memo(
                                     />
                                 </RadioDecorator>
 
-                                <RadioDecorator
+                                {/* <RadioDecorator
                                     label={i18n.t('Internal')}
                                     helperText={i18n.t(
                                         'Manipulate data and transfer it inside this DHIS2 instance'
@@ -152,7 +152,7 @@ export const ExchangeFormContents = React.memo(
                                         component={RadioFieldFF}
                                         value={EXCHANGE_TYPES.internal}
                                     />
-                                </RadioDecorator>
+                                </RadioDecorator> */}
                             </div>
                         </FieldContainer>
                     </div>
@@ -288,6 +288,7 @@ export const ExchangeFormContents = React.memo(
                             [requestsState]
                         )}
                         // redo this logic ^ (move to RequestsOverview to not need memoization)
+                        
                         setRequestEditMode={setRequestEditMode}
                         deleteRequest={deleteRequest}
                     />
