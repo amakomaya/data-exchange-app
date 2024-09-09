@@ -93,6 +93,7 @@ export const formatData = (data) => {
                 : orgUnit.name
         table.headers = [
             { name: i18n.t('Data') },
+            { name: i18n.t('Total') },
             ...periods.map(({ name }) => ({ name })),
         ]
         const rows = []
@@ -103,7 +104,9 @@ export const formatData = (data) => {
                         period.id
                     ] || ''
             )
-            rows.push([dataElement.name, ...rowData])
+            const total = rowData.reduce((sum, value) => sum + Number(value), 0);
+            
+            rows.push([dataElement.name,total, ...rowData])
         }
 
         table.rows = rows
@@ -116,9 +119,7 @@ export const formatData = (data) => {
 const RequestsDisplay = ({ requestIndex }) => {
     const { exchange, exchangeData } = useExchangeContext()
     const request = exchange.source?.requests?.[requestIndex]
-
     const formattedData = formatData(exchangeData?.[requestIndex])
-
     const { baseUrl } = useConfig()
 
     if (exchangeData?.rows?.length === 0) {
