@@ -39,8 +39,7 @@ export const PeriodSelector = ({ input, meta }) => {
             const startofNextMonth = parseInt(selectedMonth) + 1;
             const startDateEN = selectedYear+'-'+selectedMonth+'-'+'01'
             const endDateEN = selectedYear+'-'+startofNextMonth+'-'+'01'
-            console.log(endDateEN,'endDateEN')
-            console.log(startDateEN,'startDateEN')
+           
             const startDate = convertDateToAD(startDateEN);
             const endPrevDate = convertDateToAD(endDateEN);
             const endDate = moment(endPrevDate).subtract(1, 'days').format('YYYY-MM-DD');
@@ -53,8 +52,8 @@ export const PeriodSelector = ({ input, meta }) => {
                 dimensionItemType: "PERIOD",
                 valueType: "TEXT",
                 totalAggregationType: "SUM",
-                startDate: `${startDate}T00:00:00.000`,
-                endDate: `${endDate}T00:00:00.000`
+                startDate: `${startDate}`,
+                endDate: `${endDate}`
             }];
 
             input.onChange(peInfo);
