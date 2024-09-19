@@ -48,11 +48,10 @@ const getJsonPatch = ({ formattedValues, form, requestsTouched }) => {
     return changes
 }
 
-export const useUpdateExchange = ({ onComplete }) => {
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(null)
 
-    const engine = useDataEngine()
+export const useUpdateExchange = ({ onComplete }) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const refetch = useCallback(
         async ({
@@ -63,44 +62,50 @@ export const useUpdateExchange = ({ onComplete }) => {
             requestsTouched,
             newExchange,
         }) => {
-            // set to loading
-            setLoading(true)
+            // Set to loading
+            setLoading(true);
+            let response = null;
             try {
                 const formattedValues = getExchangeValuesFromForm({
                     values,
                     requests,
-                })
-                if (newExchange) {
-                    await engine.mutate({
-                        resource: 'aggregateDataExchanges',
-                        type: 'create',
-                        data: formattedValues,
-                    })
-                } else {
-                    const changes = getJsonPatch({
-                        formattedValues,
-                        form,
-                        requestsTouched,
-                    })
-                    if (changes?.length > 0) {
-                        await engine.mutate({
-                            resource: `aggregateDataExchanges/${id}`,
-                            type: 'json-patch',
-                            data: changes,
-                        })
-                    }
+                });
+
+                const request = formattedValues?.source?.requests[0];
+                const dx = request?.dx.join(';'); 
+                const ou = request?.ou.join(';'); 
+                const periodData = request?.peInfo;
+                const startDate = periodData[0].startDate;
+                const endDate = periodData[0].endDate;
+                const baseUrl = 'http://localhost:9999';                 
+                const endpoint = '/api/analytics.json';
+            
+                const url = `${baseUrl}${endpoint}?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}`;
+                
+
+    
+                const fetchResponse = await fetch(url);
+                if (!fetchResponse.ok) {
+                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
                 }
-                if (onComplete && typeof onComplete === 'function') {
-                    onComplete()
-                }
+                response = await fetchResponse.json();
+                
             } catch (e) {
-                console.error(e)
-                setError(e)
+                console.error(e);
+                setError(e);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
+
+            return response;
         },
-        [engine, onComplete]
-    )
-    return [refetch, { loading, error }]
-}
+        [onComplete]
+    );
+
+    return [refetch, { loading, error }];
+};
+
+
+
+
+
