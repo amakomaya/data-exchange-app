@@ -1,6 +1,7 @@
 import { useDataEngine } from '@dhis2/app-runtime'
 import { useCallback, useState } from 'react'
 import { getExchangeValuesFromForm } from './getExchangeValues.js'
+import { config } from '../../../config';
 
 const getChange = ({ field, value }) => ({
     op: 'add',
@@ -77,11 +78,10 @@ export const useUpdateExchange = ({ onComplete }) => {
                 const periodData = request?.peInfo;
                 const startDate = periodData[0].startDate;
                 const endDate = periodData[0].endDate;
-                const baseUrl = 'http://localhost:9999';                 
+                const baseUrl = config.baseUrl;            
                 const endpoint = '/api/analytics.json';
             
                 const url = `${baseUrl}${endpoint}?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}`;
-                
 
     
                 const fetchResponse = await fetch(url);
