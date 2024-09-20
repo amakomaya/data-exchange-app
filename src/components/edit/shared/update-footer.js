@@ -74,7 +74,7 @@ export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
                         handleSubmit()
                     }}
                 >
-                    {i18n.t('Save exchange')}
+                    {i18n.t('Send exchange')}
                 </Button>
                 <Button
                     onClick={() => {
