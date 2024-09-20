@@ -114,31 +114,31 @@ export const getReportText = (request) => {
                   orgUnitCount: orgUnits.length,
               })
     let periodsText = ''
-    if (periods.length === 1) {
-        periodsText = i18n.t('{{periodsCount}} period: {{periods}}', {
-            periodsCount: periods.length,
-            periods: periods[0],
-            nsSeparator: '-:-',
-        })
-    }
-    if (periods.length > 1 && periods.length <= 3) {
-        periodsText = i18n.t('{{periodsCount}} periods: {{periods}}', {
-            periodsCount: periods.length,
-            periods: periods.join(', '),
-            nsSeparator: '-:-',
-        })
-    }
-    if (periods.length > 3) {
-        periodsText = i18n.t(
-            '3+ periods: {{periods}}, and {{periodsCountLessThree}} more',
-            {
-                periodsCount: periods.length,
-                periods: periods.slice(0, 3).join(', '),
-                periodsCountLessThree: periods.length - 3,
-                nsSeparator: '-:-',
-            }
-        )
-    }
+    // if (periods.length === 1) {
+    //     periodsText = i18n.t('{{periodsCount}} period: {{periods}}', {
+    //         periodsCount: periods.length,
+    //         periods: periods[0],
+    //         nsSeparator: '-:-',
+    //     })
+    // }
+    // if (periods.length > 1 && periods.length <= 3) {
+    //     periodsText = i18n.t('{{periodsCount}} periods: {{periods}}', {
+    //         periodsCount: periods.length,
+    //         periods: periods.join(', '),
+    //         nsSeparator: '-:-',
+    //     })
+    // }
+    // if (periods.length > 3) {
+    //     periodsText = i18n.t(
+    //         '3+ periods: {{periods}}, and {{periodsCountLessThree}} more',
+    //         {
+    //             periodsCount: periods.length,
+    //             periods: periods.slice(0, 3).join(', '),
+    //             periodsCountLessThree: periods.length - 3,
+    //             nsSeparator: '-:-',
+    //         }
+    //     )
+    // }
     return `${name}, ${orgUnitText}, ${periodsText}`
 }
 
@@ -258,18 +258,42 @@ const SubmitModal = ({ open, onClose, setDataSubmitted }) => {
     const { exchange, exchangeData } = useExchangeContext()
     const [submitsAttempted, setSubmitsAttempted] = useState(false)
 
-    const requests = exchangeData?.map((request, index) => ({
+    const requests = exchangeData?.map((request, index) => (
+        {
         name: exchange.source?.requests?.[index]?.name,
         orgUnits: request?.metaData?.dimensions?.ou,
-        periods: request?.metaData?.dimensions?.pe.map(
-            (period) => request.metaData?.items[period]?.name
-        ),
+        periods: "208104"
+        // periods: request?.metaData?.dimensions?.pe.map(
+        //     (period) => request.metaData?.items[period]?.name
+        // ),
     }))
+   
 
+    const payload = [
+        {
+            dataSet: "newDataSetId",
+            period: "202409",
+            orgUnit: "newOrgUnitId",
+            dataValues: [
+                {
+                    dataElement: "newDataElementId",
+                    period: "20240901",
+                    orgUnit: "newOrgUnitId",
+                    value: "100"
+                },
+                {
+                    dataElement: "anotherDataElementId",
+                    period: "20240902",
+                    orgUnit: "newOrgUnitId",
+                    value: "200"
+                }
+    ]
+        }
+    ]
     const [submitExchange, { called, data, error, loading, dataSubmitted }] =
         useAggregateDataExchangeMutation({ id: exchange?.id })
 
-    // clean up whenever modal is closed
+  
     useEffect(() => {
         if (!open) {
             setSubmitsAttempted(false)
