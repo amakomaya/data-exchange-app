@@ -35,6 +35,7 @@ export const RequestFormContents = () => {
         orgUnitSelectValidator,
     } = useValidators()
 
+
     return (
         <>
             <Subsection
@@ -100,16 +101,16 @@ export const RequestFormContents = () => {
                     validate={dataItemSelectValidator}
                 />
             </Subsection>
-            {/* <Subsection
+            <Subsection
                 text={i18n.t('Periods')}
                 className={styles.subsectionBlockEnd}
-            >
-                <Field
-                    name="peInfo"
-                    component={PeriodSelector}
-                    validate={periodSelectValidator}
-                />
-            </Subsection> */}
+            > 
+            <Field
+                name="peInfo"
+                component={PeriodSelector}
+                validate={periodSelectValidator}
+            />
+            </Subsection>
             <Subsection
                 text={i18n.t('Organisation units')}
                 className={styles.subsectionBlockEnd}
@@ -122,7 +123,7 @@ export const RequestFormContents = () => {
                     />
                 </div>
             </Subsection>
-            <Subsection
+            {/* <Subsection
                 text={i18n.t('Output ID scheme options')}
                 description={i18n.t(
                     'Configure the formatting of source data before sending to the target system.'
@@ -166,7 +167,8 @@ export const RequestFormContents = () => {
                         defaultIDSchemeName={i18n.t('Output general ID scheme')}
                     />
                 </>
-            </Subsection>
+            </Subsection> */}
+          
         </>
     )
 }
