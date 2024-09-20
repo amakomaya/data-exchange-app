@@ -293,7 +293,7 @@ export const ExchangeFormContents = React.memo(
                         deleteRequest={deleteRequest}
                     />
                 </Subsection>
-                <Subsection
+                {/* <Subsection
                     text={i18n.t('Input ID scheme options')}
                     description={i18n.t(
                         'Specify the scheme (ID, code, attribute value) used on the target system to match data coming from the source system.'
@@ -357,7 +357,7 @@ export const ExchangeFormContents = React.memo(
                             dataTest="category-option-combo-scheme-selector"
                         />
                     </>
-                </Subsection>
+                </Subsection> */}
             </>
         )
     }
