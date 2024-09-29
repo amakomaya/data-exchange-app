@@ -8,7 +8,7 @@ import { useUserContext } from '../context/index.js'
 
 const defaultExchange = {
     source: { requests: [] },
-    target: { type: EXCHANGE_TYPES.internal },
+    target: { type: EXCHANGE_TYPES.external },
 }
 
 export const AddItem = () => {
