@@ -99,7 +99,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const fetchResponse = await fetch(url);
             if (fetchResponse.ok) {
                 const fetchedData = await fetchResponse.json();
-
                 const payload = {
                     dataValues: fetchedData.rows.map(row => ({
                         dataElement: row[0],
@@ -116,7 +115,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     },
                     body: JSON.stringify(payload),
                 });
-                if(response.ok){
+                if(response){
                     const data = await response.json();
                     setDataModalData(data);
                     setModalOpen(false);
@@ -171,13 +170,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     className={styles.editContainer}
                                     data-test="add-exchange-title"
                                 >
-                                    <EditTitle
+                                    {/* <EditTitle
                                         title={
                                             addMode
                                                 ? 'Add exchange'
                                                 : 'Edit exchange'
                                         }
-                                    />
+                                    /> */}
 
                                     <div className={styles.editFormArea}>
                                         {saving && (
