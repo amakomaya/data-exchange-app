@@ -23,7 +23,7 @@ const App = ({ router: Router }) => (
                     <AppProvider>
                         <UserProvider>
                             <Routes>
-                                <Route path="/" element={<DataPage />}></Route>
+                                <Route path="/" element={<AddItem />}></Route>
                                 <Route
                                     path="/edit"
                                     element={<EditPage />}
