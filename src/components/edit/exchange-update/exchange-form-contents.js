@@ -96,7 +96,7 @@ export const ExchangeFormContents = React.memo(
 
         return (
             <>
-                <Subsection text={i18n.t('Basic setup')}>
+                {/* <Subsection text={i18n.t('Basic setup')}>
                     <div
                         className={styles.subsectionField1000}
                         data-test="exchange-name-input"
@@ -107,15 +107,17 @@ export const ExchangeFormContents = React.memo(
                             helpText={i18n.t(
                                 'A unique name helps people find the right data exchange.'
                             )}
+                            value="test" 
+
                             component={InputFieldFF}
-                            validate={hasValue}
+                            // validate={hasValue}
                         />
                     </div>
                     <div
                         className={styles.subsectionField}
                         data-test="exchange-type-input"
                     >
-                        <FieldContainer label={i18n.t('Exchange target type')}>
+                        <FieldContainer>
                             <div
                                 className={styles.radiosContainer}
                                 data-test="exchange-types"
@@ -134,10 +136,11 @@ export const ExchangeFormContents = React.memo(
                                         type="radio"
                                         component={RadioFieldFF}
                                         value={EXCHANGE_TYPES.external}
+                                        checked
                                     />
                                 </RadioDecorator>
 
-                                {/* <RadioDecorator
+                                <RadioDecorator
                                     label={i18n.t('Internal')}
                                     helperText={i18n.t(
                                         'Manipulate data and transfer it inside this DHIS2 instance'
@@ -152,12 +155,11 @@ export const ExchangeFormContents = React.memo(
                                         component={RadioFieldFF}
                                         value={EXCHANGE_TYPES.internal}
                                     />
-                                </RadioDecorator> */}
+                                </RadioDecorator>
                             </div>
                         </FieldContainer>
                     </div>
-                </Subsection>
-                {typeValue === EXCHANGE_TYPES.external && (
+                </Subsection> */}
                     <Subsection
                         text={i18n.t('Target setup')}
                         dataTest="target-setup"
@@ -276,7 +278,7 @@ export const ExchangeFormContents = React.memo(
                             </div>
                         )}
                     </Subsection>
-                )}
+               
                 <Subsection text={i18n.t('Requests')}>
                     <RequestsOverview
                         requestsInfo={useMemo(
