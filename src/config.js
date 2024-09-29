@@ -1,3 +1,4 @@
 export const config = {
-    baseUrl: 'http://localhost:9999',
+        baseUrl: 'https://www.health.dhis2mis.org',
+
 };
