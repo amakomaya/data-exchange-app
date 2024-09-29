@@ -54,13 +54,13 @@ export const RequestForm = ({
                                     title={
                                         addModeRequest
                                             ? i18n.t(
-                                                  'Edit exchange: Add request',
+                                                  'Add request',
                                                   {
                                                       nsSeparator: '-:-',
                                                   }
                                               )
                                             : i18n.t(
-                                                  'Edit exchange: Edit request',
+                                                  'Edit request',
                                                   {
                                                       nsSeparator: '-:-',
                                                   }
