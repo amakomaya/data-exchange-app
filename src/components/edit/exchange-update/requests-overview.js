@@ -88,7 +88,7 @@ const RequestRow = ({
         <DataTableCell onClick={() => setRequestEditMode(request)}>
             {request.dx.length}
         </DataTableCell>
-        <DataTableCell>
+        {/* <DataTableCell>
             {request.visualizationInfo?.id ? (
                 <a
                     target="_blank"
@@ -100,7 +100,7 @@ const RequestRow = ({
             ) : (
                 <span>{request.visualizationInfo?.name ?? ''}</span>
             )}
-        </DataTableCell>
+        </DataTableCell> */}
         <DataTableCell>
             <Button
                 small
@@ -139,7 +139,7 @@ export const RequestsOverview = ({
                         <TableCellHead>{i18n.t('Org. units')}</TableCellHead>
                         <TableCellHead>{i18n.t('Periods')}</TableCellHead>
                         <TableCellHead>{i18n.t('Data items')}</TableCellHead>
-                        <TableCellHead>{i18n.t('Visualization')}</TableCellHead>
+                        {/* <TableCellHead>{i18n.t('Visualization')}</TableCellHead> */}
                         <TableCellHead></TableCellHead>
                     </TableRowHead>
                 </TableHead>
