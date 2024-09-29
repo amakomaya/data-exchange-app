@@ -1,12 +1,12 @@
 {
-    "name": "data-exchange-app",
-    "version": "100.9.3",
+    "name": "tracker-to-aggregate",
+    "version": "0.0.1",
     "description": "",
     "license": "BSD-3-Clause",
     "private": true,
     "scripts": {
         "build": "d2-app-scripts build",
-        "start": "d2-app-scripts start",
+        "start": "cross-env NODE_OPTIONS=--max_old_space_size=8192 d2-app-scripts start",
         "start:nobrowser": "BROWSER=none d2-app-scripts start",
         "test": "d2-app-scripts test",
         "deploy": "d2-app-scripts deploy",
@@ -34,7 +34,8 @@
         "cypress": "^13.10.0",
         "enzyme": "^3.11.0",
         "enzyme-adapter-react-16": "^1.15.6",
-        "start-server-and-test": "^1.14.0"
+        "start-server-and-test": "^1.14.0",
+        "webpack-cli": "^5.1.4"
     },
     "dependencies": {
         "@dhis2/analytics": "^26.7.9",
@@ -42,6 +43,7 @@
         "@dhis2/ui": "^9.10.3",
         "@sbmdkl/nepali-date-converter": "^2.0.3",
         "classnames": "^2.5.1",
+        "cross-env": "^7.0.3",
         "react-router-dom": "^6.4.1",
         "use-query-params": "^2.1.1"
     },
