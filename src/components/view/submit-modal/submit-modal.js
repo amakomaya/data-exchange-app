@@ -114,31 +114,7 @@ export const getReportText = (request) => {
                   orgUnitCount: orgUnits.length,
               })
     let periodsText = ''
-    // if (periods.length === 1) {
-    //     periodsText = i18n.t('{{periodsCount}} period: {{periods}}', {
-    //         periodsCount: periods.length,
-    //         periods: periods[0],
-    //         nsSeparator: '-:-',
-    //     })
-    // }
-    // if (periods.length > 1 && periods.length <= 3) {
-    //     periodsText = i18n.t('{{periodsCount}} periods: {{periods}}', {
-    //         periodsCount: periods.length,
-    //         periods: periods.join(', '),
-    //         nsSeparator: '-:-',
-    //     })
-    // }
-    // if (periods.length > 3) {
-    //     periodsText = i18n.t(
-    //         '3+ periods: {{periods}}, and {{periodsCountLessThree}} more',
-    //         {
-    //             periodsCount: periods.length,
-    //             periods: periods.slice(0, 3).join(', '),
-    //             periodsCountLessThree: periods.length - 3,
-    //             nsSeparator: '-:-',
-    //         }
-    //     )
-    // }
+
     return `${name}, ${orgUnitText}, ${periodsText}`
 }
 
