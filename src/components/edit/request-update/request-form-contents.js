@@ -38,7 +38,7 @@ export const RequestFormContents = () => {
 
     return (
         <>
-            <Subsection
+            {/* <Subsection
                 text={i18n.t('Request setup')}
                 className={styles.subsectionBlockEnd}
             >
@@ -89,7 +89,7 @@ export const RequestFormContents = () => {
                         />
                     )}
                 </div>
-            </Subsection>
+            </Subsection> */}
             <Subsection
                 text={i18n.t('Data items')}
                 className={styles.subsectionBlockEnd}
