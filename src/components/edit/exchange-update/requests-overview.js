@@ -76,9 +76,9 @@ const RequestRow = ({
     setRequestEditMode,
 }) => (
     <TableRow key={request.name}>
-        <DataTableCell onClick={() => setRequestEditMode(request)}>
+        {/* <DataTableCell onClick={() => setRequestEditMode(request)}>
             {request.name}
-        </DataTableCell>
+        </DataTableCell> */}
         <DataTableCell onClick={() => setRequestEditMode(request)}>
             {getOuText({ ouInfo: request.ouInfo })}
         </DataTableCell>
@@ -135,7 +135,7 @@ export const RequestsOverview = ({
             <Table suppressZebraStriping>
                 <TableHead>
                     <TableRowHead>
-                        <TableCellHead>{i18n.t('Name')}</TableCellHead>
+                        {/* <TableCellHead>{i18n.t('Name')}</TableCellHead> */}
                         <TableCellHead>{i18n.t('Org. units')}</TableCellHead>
                         <TableCellHead>{i18n.t('Periods')}</TableCellHead>
                         <TableCellHead>{i18n.t('Data items')}</TableCellHead>
