@@ -164,7 +164,11 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             >
                 {({ handleSubmit }) => (
                     <div>
-                        <div className={styles.fullHeight}>
+                        <div
+                            className={classNames(styles.fullHeight, {
+                                [styles.hidden]: requestEditInfo?.editMode,
+                            })}
+                        >
                             <div className={styles.editArea}>
                                 <div
                                     className={styles.editContainer}
