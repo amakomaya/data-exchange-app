@@ -22,6 +22,7 @@ export const PeriodSelector = ({ input, meta }) => {
 
     const [selectedYear, setSelectedYear] = useState('2081');
     const [selectedMonth, setSelectedMonth] = useState('');
+    const [validationMessage, setValidationMessage] = useState('');
 
   
     const convertDateToAD = (dateString) => {
@@ -55,8 +56,11 @@ export const PeriodSelector = ({ input, meta }) => {
                 startDate: `${startDate}`,
                 endDate: `${endDate}`
             }];
-
+            setValidationMessage(''); 
             input.onChange(peInfo);
+        }
+        else {
+            setValidationMessage('* Choose at least one period'); 
         }
     };
 
@@ -99,7 +103,10 @@ export const PeriodSelector = ({ input, meta }) => {
                     style={{ width: '100px', padding: '10px', fontSize: '16px', marginLeft: '10px' }}
                     placeholder="Year"
                 />
-
+            
+            {/* Validation Message */}
+            {validationMessage && <p style={{ color: 'red', marginTop: '10px' }}>{validationMessage}</p>}
+    
         </>
     );
 };
