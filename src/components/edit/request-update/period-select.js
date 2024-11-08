@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-// import { SelectorValidationError } from '../shared/index.js';
-import { bsToAd }from '@sbmdkl/nepali-date-converter';
+import { adToBs,bsToAd } from '@sbmdkl/nepali-date-converter';
 import moment from 'moment'; 
 
 export const PeriodSelector = ({ input, meta }) => {
+    const { value: selectedPeriods } = input;
     const nepaliMonths = [
         { name: "Baisakh", period: "01" },
         { name: "Jestha", period: "02" },
@@ -20,27 +20,31 @@ export const PeriodSelector = ({ input, meta }) => {
         { name: "Chaitra", period: "12" },
     ];
 
-    const [selectedYear, setSelectedYear] = useState('2081');
-    const [selectedMonth, setSelectedMonth] = useState('');
+    const currentYearAD = moment().year();
+    const dateNP = adToBs(`${currentYearAD}-05-01`);
+    let nepYear = dateNP.substring(0, 4);
+
+    const initialYear = selectedPeriods?.[0]?.id.slice(0, 4) ||nepYear;
+    const initialMonth = selectedPeriods?.[0]?.id.slice(4, 6) || '';
+
+    const [selectedYear, setSelectedYear] = useState(initialYear);
+    const [selectedMonth, setSelectedMonth] = useState(initialMonth);
     const [validationMessage, setValidationMessage] = useState('');
 
-  
     const convertDateToAD = (dateString) => {
-        try{
-            const engDate = bsToAd(dateString);
-            return engDate;
-        }
-        catch(e){
+        try {
+            return bsToAd(dateString);
+        } catch (e) {
             return dateString;
         }
-       
     };
+
     const generatePeriodInfo = () => {
-        if (selectedYear && selectedMonth) {        
+        if (selectedYear && selectedMonth) {
             const startofNextMonth = parseInt(selectedMonth) + 1;
-            const startDateEN = selectedYear+'-'+selectedMonth+'-'+'01'
-            const endDateEN = selectedYear+'-'+startofNextMonth+'-'+'01'
-           
+            const startDateEN = `${selectedYear}-${selectedMonth}-01`;
+            const endDateEN = `${selectedYear}-${startofNextMonth.toString().padStart(2, '0')}-01`;
+
             const startDate = convertDateToAD(startDateEN);
             const endPrevDate = convertDateToAD(endDateEN);
             const endDate = moment(endPrevDate).subtract(1, 'days').format('YYYY-MM-DD');
@@ -56,11 +60,10 @@ export const PeriodSelector = ({ input, meta }) => {
                 startDate: `${startDate}`,
                 endDate: `${endDate}`
             }];
-            setValidationMessage(''); 
+            setValidationMessage('');
             input.onChange(peInfo);
-        }
-        else {
-            setValidationMessage('* Choose at least one period'); 
+        } else {
+            setValidationMessage('* Choose at least one period');
         }
     };
 
@@ -79,8 +82,6 @@ export const PeriodSelector = ({ input, meta }) => {
 
     return (
         <>
-       
-
             {/* Month Selector */}
             <select
                 onChange={handleMonthSelection}
@@ -95,18 +96,18 @@ export const PeriodSelector = ({ input, meta }) => {
                     </option>
                 ))}
             </select>
-                 {/* Year Selector */}
-                <input
-                    type="number"
-                    value={selectedYear}
-                    onChange={handleYearSelection}
-                    style={{ width: '100px', padding: '10px', fontSize: '16px', marginLeft: '10px' }}
-                    placeholder="Year"
-                />
+            
+            {/* Year Selector */}
+            <input
+                type="number"
+                value={selectedYear}
+                onChange={handleYearSelection}
+                style={{ width: '100px', padding: '10px', fontSize: '16px', marginLeft: '10px' }}
+                placeholder="Year"
+            />
             
             {/* Validation Message */}
             {validationMessage && <p style={{ color: 'red', marginTop: '10px' }}>{validationMessage}</p>}
-    
         </>
     );
 };
@@ -115,7 +116,3 @@ PeriodSelector.propTypes = {
     input: PropTypes.object.isRequired,
     meta: PropTypes.object,
 };
-
-
-
-
