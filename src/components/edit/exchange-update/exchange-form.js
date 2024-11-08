@@ -99,12 +99,17 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const fetchResponse = await fetch(url);
             if (fetchResponse.ok) {
                 const fetchedData = await fetchResponse.json();
+                const urlEndpoint = `${baseUrl}/api/programIndicators/${dx}`
+                const comboOptionResponse = await fetch(urlEndpoint);
+                const comboOptionData =  await comboOptionResponse.json();
+                const categoryOptionComboId =comboOptionData.aggregateExportCategoryOptionCombo;
                 const payload = {
                     dataValues: fetchedData.rows.map(row => ({
                         dataElement: row[0],
                         period: pe,  
                         orgUnit: row[1],
                         value: parseInt(row[2]),  
+                        categoryOptionCombo:categoryOptionComboId
                     })),
                 };
                 const response = await fetch(`${targetUrl}api/dataValueSets`, {
