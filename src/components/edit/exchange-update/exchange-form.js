@@ -85,7 +85,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const targetUrl = dataValues?.target?.api.url
             const username = dataValues?.target?.api.username
             const password = dataValues?.target?.api.password
-
+            const accessToken =dataValues?.target?.api.accessToken
             const request = dataValues?.source?.requests[0];
             const dx = request?.dx.join(';'); 
             const ou = request?.ou.join(';'); 
@@ -108,11 +108,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         dataElement: row[0],
                         period: pe,  
                         orgUnit: row[1],
-                        value: parseInt(row[2]),  
+                        value: parseInt(row[2]), 
                         categoryOptionCombo:categoryOptionComboId
                     })),
                 };
-                const response = await fetch(`${targetUrl}api/dataValueSets`, {
+              if(username && password){
+                 const response = await fetch(`${targetUrl}api/dataValueSets`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -127,9 +128,29 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     setDataModalOpen(true);
                 }
                 return response.ok
-                    ? console.log('Data sent successfully:', await response.json())
+                    ? console.log('Data sent successfully:')
                     : console.error('Error sending data:', response.statusText);
-            
+            }
+            else{
+
+                const response = await fetch(`${targetUrl}api/dataValueSets`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'ApiToken ' + accessToken
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if(response){
+                    const data = await response.json();
+                    setDataModalData(data);
+                    setModalOpen(false);
+                    setDataModalOpen(true);
+                }
+                return response.ok
+                    ? console.log('Data sent successfully:')
+                    : console.error('Error sending data:', response.statusText);
+            }
          
         }
     };
