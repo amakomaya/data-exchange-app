@@ -90,7 +90,7 @@ export const RequestFormContents = () => {
                     )}
                 </div>
             </Subsection> */}
-            <Subsection
+            {/* <Subsection
                 text={i18n.t('Data items')}
                 className={styles.subsectionBlockEnd}
             >
@@ -100,7 +100,7 @@ export const RequestFormContents = () => {
                     component={DataItemSelect}
                     validate={dataItemSelectValidator}
                 />
-            </Subsection>
+            </Subsection> */}
             <Subsection
                 text={i18n.t('Periods')}
                 className={styles.subsectionBlockEnd}
