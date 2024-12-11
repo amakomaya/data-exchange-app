@@ -74,7 +74,7 @@ export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
                         handleSubmit()
                     }}
                 >
-                    {i18n.t('Send exchange')}
+                    {i18n.t('Send HMIS montly aggregate report')}
                 </Button>
                 <Button
                     onClick={() => {
