@@ -71,24 +71,54 @@ export const useUpdateExchange = ({ onComplete }) => {
                     values,
                     requests,
                 });
+                const targetUrl = formattedValues?.target?.api.url
+                const username = formattedValues?.target?.api.username
+                const password = formattedValues?.target?.api.password
+                const accessToken =formattedValues?.target?.api.accessToken
+                
+                if(username && password){
+                    const fetchResponse = await fetch(`${targetUrl}api/dataSets`, {
+                       method: 'GET',
+                       headers: {
+                           'Content-Type': 'application/json',
+                           'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                       },
+                   });
+                   if(fetchResponse){
+                       response = await fetchResponse.json();
+                   }
+                   
+                }
+                else{
+                
+                   const fetchResponse = await fetch(`${targetUrl}api/dataSets`, {
+                       method: 'GET',
+                       headers: {
+                           'Content-Type': 'application/json',
+                           'Authorization': 'ApiToken ' + accessToken
+                       },
+                   });
+                   if(fetchResponse){
+                     response = await fetchResponse.json();
+                   }
 
-                const request = formattedValues?.source?.requests[0];
-                const dx = request?.dx.join(';'); 
-                const ou = request?.ou.join(';'); 
-                const periodData = request?.peInfo;
-                const startDate = periodData[0].startDate;
-                const endDate = periodData[0].endDate;
-                const baseUrl = config.baseUrl;            
-                const endpoint = '/api/analytics.json';
-            
-                const url = `${baseUrl}${endpoint}?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}`;
+                }
+                // const request = formattedValues?.source?.requests[0];
+                // const dx = request?.dx.join(';'); 
+                // const ou = request?.ou.join(';'); 
+                // const periodData = request?.peInfo;
+                // const startDate = periodData[0].startDate;
+                // const endDate = periodData[0].endDate;
+                // const baseUrl = config.baseUrl;            
+                // const endpoint = '/api/analytics.json';
+                // const url = `${baseUrl}${endpoint}?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}`;
 
     
-                const fetchResponse = await fetch(url);
-                if (!fetchResponse.ok) {
-                    throw new Error(`HTTP error! status: ${fetchResponse.status}`);
-                }
-                response = await fetchResponse.json();
+                // const fetchResponse = await fetch(url);
+                // if (!fetchResponse.ok) {
+                //     throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+                // }
+                // response = await fetchResponse.json();
                 
             } catch (e) {
                 console.error(e);
