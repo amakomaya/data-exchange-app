@@ -85,9 +85,9 @@ const RequestRow = ({
         <DataTableCell onClick={() => setRequestEditMode(request)}>
             {request.peInfo.map(({ name }) => name).join(', ')}
         </DataTableCell>
-        <DataTableCell onClick={() => setRequestEditMode(request)}>
+        {/* <DataTableCell onClick={() => setRequestEditMode(request)}>
             {request.dx.length}
-        </DataTableCell>
+        </DataTableCell> */}
         {/* <DataTableCell>
             {request.visualizationInfo?.id ? (
                 <a
@@ -138,7 +138,7 @@ export const RequestsOverview = ({
                         {/* <TableCellHead>{i18n.t('Name')}</TableCellHead> */}
                         <TableCellHead>{i18n.t('Org. units')}</TableCellHead>
                         <TableCellHead>{i18n.t('Periods')}</TableCellHead>
-                        <TableCellHead>{i18n.t('Data items')}</TableCellHead>
+                        {/* <TableCellHead>{i18n.t('Data items')}</TableCellHead> */}
                         {/* <TableCellHead>{i18n.t('Visualization')}</TableCellHead> */}
                         <TableCellHead></TableCellHead>
                     </TableRowHead>
@@ -160,7 +160,8 @@ export const RequestsOverview = ({
                 </TableBody>
             </Table>
             <ButtonStrip className={styles.buttonContainer}>
-                <Button small onClick={() => setRequestEditMode({}, true)}>
+                <Button small onClick={() => setRequestEditMode({}, true)}
+                 disabled={requestsInfo.length > 0} >
                     {i18n.t('Add request')}
                 </Button>
             </ButtonStrip>
