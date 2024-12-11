@@ -61,10 +61,146 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
     const [isModalOpen, setModalOpen] = useState(false);
     const [modalData, setModalData] = useState([]); 
+    const [selectedDataset, setSelectedDataset] = useState('');
+    const [datasetDetails, setDatasetDetails] = useState(null);
 
     const [isDataModalOpen, setDataModalOpen] = useState(false);
     const [DatamodalData, setDataModalData] = useState([]); 
 
+    const [analyticsRows, setAnalyticsRows] = useState([]);
+    const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
+    const [peInfo, setPeInfo] = useState('');
+
+    const handleDatasetChange = (e) => {
+        setSelectedDataset(e.target.value);
+    };
+    const fetchDatasetDetails = async () => {
+        if (!selectedDataset) return;
+        try {
+            const baseUrl = config.baseUrl;            
+            const endpoint = '/api/programIndicators';
+            const programIndicatorsUrl = `${baseUrl}${endpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
+            const programIndicatorsData = await fetch(programIndicatorsUrl);
+             if (programIndicatorsData.ok) {
+                const fetchedprogramIndicatorsData = await programIndicatorsData.json();
+                const dx = fetchedprogramIndicatorsData?.programIndicators.map(data => data.id).join(';');
+                const id = fetchedprogramIndicatorsData?.programIndicators.map(data => data.id).join(','); 
+                const values =modalData.values;
+                const requests = modalData.requestsState
+                const formattedValues = getExchangeValuesFromForm({
+                    values,
+                    requests,
+                });
+                const targetUrl = formattedValues?.target?.api.url
+                const username = formattedValues?.target?.api.username
+                const password = formattedValues?.target?.api.password
+                const accessToken =formattedValues?.target?.api.accessToken
+                const request = formattedValues?.source?.requests[0];
+                const ou = request?.ou.join(';'); 
+                const periodData = request?.peInfo;
+                const peInfo = periodData[0].id;
+                setPeInfo(peInfo); 
+                const startDate = periodData[0].startDate;
+                const endDate = periodData[0].endDate;
+                const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
+                const analyticsData = await fetch(analyticsUrl);
+
+                if (analyticsData.ok) {
+                    const fetchedAnalyticsData = await analyticsData.json();
+                    const rows = fetchedAnalyticsData.rows;
+                    setAnalyticsRows(rows); 
+
+                    const comboIdUrl = `${baseUrl}${endpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
+                    const comboIdData = await fetch(comboIdUrl);
+                    const fetchedcomboIdData = await comboIdData.json();
+                    const programIndicators = fetchedcomboIdData.programIndicators;
+                    const dynamicAttributeId = programIndicators[0]?.attributeValues[0]?.attribute.id;
+                    const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
+                    setCategoryOptionCombos(categoryOptionCombos); 
+                    let result = {};
+                    rows.forEach(row => {
+                        const [value, orgunitID, rowValue] = row;
+                        
+                        programIndicators.forEach(indicator => {
+                            const matchingAttribute = indicator.attributeValues.find(attribute => attribute.attribute.id === dynamicAttributeId);
+                            
+                            if (matchingAttribute && matchingAttribute.value === value) {
+                                const key = `${value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
+                
+                                result[key] = rowValue;
+                            }
+
+                        });
+                    });
+                    if (username && password) {
+                        const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                            },
+                        });
+                    
+                        if (fetchResponse) {
+                            const data = await fetchResponse.json();        
+                            const HtmlCode = data?.dataEntryForms?.map(form => {
+                                if (form.htmlCode) {
+                                    let updatedHtml = form.htmlCode
+                                        .replace(/\\n/g, '')
+                                        .replace(/\\t/g, '')
+                                        .replace(/\\/g, '');
+                    
+                                    Object.keys(result).forEach(key => {
+                                        const inputId = key; 
+                                        const inputValue = result[key]; 
+                                        updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                    });
+                    
+                                    return updatedHtml;
+                                }
+                                return '';
+                            });
+                    
+                            setDatasetDetails(HtmlCode);
+                        }
+                    } else {
+                        const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'ApiToken ' + accessToken
+                            },
+                        });
+                    
+                        if (fetchResponse) {
+                            const data = await fetchResponse.json();
+                    
+                            const HtmlCode = data?.dataEntryForms?.map(form => {
+                                if (form.htmlCode) {
+                                    let updatedHtml = form.htmlCode
+                                        .replace(/\\n/g, '')
+                                        .replace(/\\t/g, '')
+                                        .replace(/\\/g, '');
+                    
+                                    Object.keys(result).forEach(key => {
+                                        const inputId = key; 
+                                        const inputValue = result[key];
+                                        updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                    });
+                    
+                                    return updatedHtml;
+                                }
+                                return '';
+                            });
+                            setDatasetDetails(HtmlCode);
+                        }
+                    }                    
+                }
+            }       
+        } catch (err) {
+            console.error('Error fetching dataset details:', err);
+        } 
+    };
     const handleCloseModal = () => {
         setModalOpen(false);
     };
@@ -74,86 +210,103 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     };
 
     const handleConfirm = async () => {
-       
-            const values =modalData.values;
-            const requests = modalData.requestsState
-            const dataValues = getExchangeValuesFromForm({
-                values,
-                requests,
+        try {
+            const { values, requestsState } = modalData;
+            const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
+            const targetUrl = dataValues?.target?.api.url;
+            const username = dataValues?.target?.api.username;
+            const password = dataValues?.target?.api.password;
+            const accessToken = dataValues?.target?.api.accessToken;
+    
+            let orgUnitID = null;
+            analyticsRows.forEach((row) => {
+                orgUnitID = row[1];
             });
-            const pe = dataValues?.source?.requests[0]?.peInfo[0].id
-            const targetUrl = dataValues?.target?.api.url
-            const username = dataValues?.target?.api.username
-            const password = dataValues?.target?.api.password
-            const accessToken =dataValues?.target?.api.accessToken
-            const request = dataValues?.source?.requests[0];
-            const dx = request?.dx.join(';'); 
-            const ou = request?.ou.join(';'); 
-            const periodData = request?.peInfo;
-            const startDate = periodData[0].startDate;
-            const endDate = periodData[0].endDate;
-            const baseUrl = config.baseUrl;            
-
-            const endpoint = '/api/analytics.json';
-            const url = `${baseUrl}${endpoint}?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
-            const fetchResponse = await fetch(url);
-            if (fetchResponse.ok) {
-                const fetchedData = await fetchResponse.json();
-                const urlEndpoint = `${baseUrl}/api/programIndicators/${dx}`
-                const comboOptionResponse = await fetch(urlEndpoint);
-                const comboOptionData =  await comboOptionResponse.json();
-                const categoryOptionComboId =comboOptionData.aggregateExportCategoryOptionCombo;
-                const payload = {
-                    dataValues: fetchedData.rows.map(row => ({
-                        dataElement: row[0],
-                        period: pe,  
-                        orgUnit: row[1],
-                        value: parseInt(row[2]), 
-                        categoryOptionCombo:categoryOptionComboId
-                    })),
-                };
-              if(username && password){
-                 const response = await fetch(`${targetUrl}api/dataValueSets`, {
+    
+            if (!orgUnitID) {
+                console.error('Organisation Unit ID is missing.');
+                return;
+            }
+    
+            let orgUnitResponse;
+    
+            if (username && password) {
+                orgUnitResponse = await fetch(`${targetUrl}api/organisationUnits/${orgUnitID}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa(`${username}:${password}`),
+                    },
+                });
+            } else if (accessToken) {
+                orgUnitResponse = await fetch(`${targetUrl}api/organisationUnits/${orgUnitID}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'ApiToken ' + accessToken,
+                    },
+                });
+            } else {
+                console.error('No authentication credentials provided.');
+                return;
+            }
+    
+            if (!orgUnitResponse.ok) {
+                console.error('Failed to fetch organisation unit:', orgUnitResponse.statusText);
+                return;
+            }
+    
+            const orgUnitData = await orgUnitResponse.json();
+            const orgUnitCode = orgUnitData.code;
+    
+            const payload = {
+                dataSet: selectedDataset,
+                orgUnitIdScheme: 'code',
+                dataValues: analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
+                    dataElement,
+                    orgUnit:orgUnitCode,
+                    period: peInfo,
+                    categoryOptionCombo: categoryOptionCombos[index],
+                    value: parseInt(rowValue, 10),
+                })),
+            };
+    
+            let dataValueResponse;
+            if (username && password) {
+                dataValueResponse = await fetch(`${targetUrl}api/dataValueSets`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                        'Authorization': 'Basic ' + btoa(`${username}:${password}`),
                     },
                     body: JSON.stringify(payload),
                 });
-                if(response){
-                    const data = await response.json();
-                    setDataModalData(data);
-                    setModalOpen(false);
-                    setDataModalOpen(true);
-                }
-                return response.ok
-                    ? console.log('Data sent successfully:')
-                    : console.error('Error sending data:', response.statusText);
-            }
-            else{
-
-                const response = await fetch(`${targetUrl}api/dataValueSets`, {
+            } else {
+                dataValueResponse = await fetch(`${targetUrl}api/dataValueSets`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'ApiToken ' + accessToken
+                        'Authorization': 'ApiToken ' + accessToken,
                     },
                     body: JSON.stringify(payload),
                 });
-                if(response){
-                    const data = await response.json();
-                    setDataModalData(data);
-                    setModalOpen(false);
-                    setDataModalOpen(true);
-                }
-                return response.ok
-                    ? console.log('Data sent successfully:')
-                    : console.error('Error sending data:', response.statusText);
             }
-         
+    
+            if (!dataValueResponse.ok) {
+                console.error('Failed to send data values:', dataValueResponse.statusText);
+                return;
+            }
+    
+            const responseData = await dataValueResponse.json();
+            setDataModalData(responseData);
+            setModalOpen(false);
+            setDataModalOpen(true);
+    
+        } catch (error) {
+            console.error('Error during data processing:', error.message);
         }
     };
+    
 
     return (
         <>
@@ -168,17 +321,14 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             requestsTouched,
                             newExchange: addMode,
                         });
-                        if (response) {
-                            const formattedData = response.rows.map(row => ({
-                                name: response.metaData.items[row[0]]?.name ,
-                                orgUnit:response.metaData.items[row[1]]?.name,
-                                total: row[2],
-                            }));
-                            const combinedData = {
-                                formattedData,
+                        if (response) {                       
+                            const datasetData = response.dataSets;
+                              const combinedData = {
+                                datasetData,
                                 values,         
                                 requestsState,  
                             };
+
                             setModalData(combinedData); 
                             setModalOpen(true); 
                         }
@@ -200,15 +350,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     className={styles.editContainer}
                                     data-test="add-exchange-title"
                                 >
-                                    {/* <EditTitle
-                                        title={
-                                            addMode
-                                                ? 'Add exchange'
-                                                : 'Edit exchange'
-                                        }
-                                    /> */}
-
-                                    <div className={styles.editFormArea}>
+                                   <div className={styles.editFormArea}>
                                         {saving && (
                                             <span data-test="saving-exchange-loader">
                                                 <Loader />
@@ -280,50 +422,50 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             padding: '20px',
                             borderRadius: '8px',
                             width: '80%',
-                            maxWidth: '600px',
+                            maxWidth: '1200px',
                             boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
                             overflowY: 'scroll',
                             maxHeight: '90vh',
                         }}
                     >
-                        {/* Check if modalData.formattedData exists and has length */}
-                        {modalData?.formattedData?.length > 0 ? (
-                            Object.entries(
-                                modalData.formattedData.reduce((acc, data) => {
-                                    if (!acc[data.orgUnit]) {
-                                        acc[data.orgUnit] = [];
-                                    }
-                                    acc[data.orgUnit].push(data);
-                                    return acc;
-                                }, {})
-                            ).map(([orgUnit, records], orgIndex) => (
-                                <div key={orgIndex} style={{ marginBottom: '20px' }}>
-                                    <h3>{orgUnit}</h3>
-                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                        <thead>
-                                            <tr>
-                                                <th style={{ border: '1px solid #ddd', padding: '8px' }}>S.N</th>
-                                                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Name</th>
-                                                <th style={{ border: '1px solid #ddd', padding: '8px' }}>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {records.map((data, index) => (
-                                                <tr key={index}>
-                                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{index + 1}</td>
-                                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{data.name}</td>
-                                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{data.total}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                        <h3>Select a Program</h3>
+                           <select
+                                id="datasetDropdown"
+                                value={selectedDataset}
+                                onChange={handleDatasetChange}
+                            >
+                                <option value="" disabled>
+                                    -- Select a Dataset --
+                                </option>
+                                {modalData?.datasetData.map(({ id, displayName }) => (
+                                    <option key={id} value={id}>
+                                        {displayName}
+                                    </option>
+                                ))}
+                            </select>
+
+
+                            <Button
+                             style={{
+                                padding: '10px 15px',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                marginLeft: '30px',
+                                marginBottom:'10px'
+                            }}
+                                primary
+                                onClick={fetchDatasetDetails}
+                                disabled={!selectedDataset}
+                            >
+                                Fetch Dataset Details
+                            </Button>
+
+                            {datasetDetails && (
+                                <div>
+                                    <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
                                 </div>
-                            ))
-                        ) : (
-                            <div><strong>No data found</strong></div>
-                        )}
-
-
+                            )}
                         <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
                             <Button
                                 style={{
