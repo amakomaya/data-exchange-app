@@ -103,35 +103,107 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 const startDate = periodData[0].startDate;
                 const endDate = periodData[0].endDate;
                 const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
-                const analyticsData = await fetch(analyticsUrl);
-
-                if (analyticsData.ok) {
-                    const fetchedAnalyticsData = await analyticsData.json();
-                    const rows = fetchedAnalyticsData.rows;
-                    setAnalyticsRows(rows); 
-
-                    const comboIdUrl = `${baseUrl}${endpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
-                    const comboIdData = await fetch(comboIdUrl);
-                    const fetchedcomboIdData = await comboIdData.json();
-                    const programIndicators = fetchedcomboIdData.programIndicators;
-                    const dynamicAttributeId = programIndicators[0]?.attributeValues[0]?.attribute.id;
-                    const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
-                    setCategoryOptionCombos(categoryOptionCombos); 
-                    let result = {};
-                    rows.forEach(row => {
-                        const [value, orgunitID, rowValue] = row;
-                        
-                        programIndicators.forEach(indicator => {
-                            const matchingAttribute = indicator.attributeValues.find(attribute => attribute.attribute.id === dynamicAttributeId);
+                if(dx.length>0){
+                    const analyticsData = await fetch(analyticsUrl);
+                    if (analyticsData.ok) {
+                        const fetchedAnalyticsData = await analyticsData.json();
+                        const rows = fetchedAnalyticsData.rows;
+                        setAnalyticsRows(rows); 
+                        const comboIdUrl = `${baseUrl}${endpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
+                        const comboIdData = await fetch(comboIdUrl);
+                        const fetchedcomboIdData = await comboIdData.json();
+                        const programIndicators = fetchedcomboIdData.programIndicators;
+                        const dynamicAttributeId = programIndicators[0]?.attributeValues[0]?.attribute.id;
+                        const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
+                        setCategoryOptionCombos(categoryOptionCombos); 
+                        let result = {};
+                        rows.forEach(row => {
+                            const [value, orgunitID, rowValue] = row;
                             
-                            if (matchingAttribute && matchingAttribute.value === value) {
-                                const key = `${value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
-                
-                                result[key] = rowValue;
-                            }
-
+                            programIndicators.forEach(indicator => {
+                                const matchingAttribute = indicator.attributeValues.find(attribute => attribute.attribute.id === dynamicAttributeId);
+                                
+                                if (matchingAttribute && matchingAttribute.value === value) {
+                                    const key = `${value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
+                    
+                                    result[key] = rowValue;
+                                }
+    
+                            });
                         });
-                    });
+                        if (username && password) {
+                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                                },
+                            });
+                            if (fetchResponse) {
+                                const data = await fetchResponse.json();
+                                const HtmlCode = data?.dataEntryForms?.map(form => {
+                                    if (form.htmlCode) {
+                                        let updatedHtml = form.htmlCode
+                                            .replace(/\\n/g, '')
+                                            .replace(/\\t/g, '')
+                                            .replace(/\\/g, '');
+                            
+                                        if (Object.keys(result).length > 0) {
+                                            Object.keys(result).forEach(key => {
+                                                const inputId = key; 
+                                                const inputValue = result[key]; 
+                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                            });
+                                        }
+                            
+                                        return updatedHtml;
+                                    }
+                            
+                                    return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
+                                });
+                            
+                                setDatasetDetails(HtmlCode);
+                            }
+                            
+                        } 
+                        else {
+                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'ApiToken ' + accessToken
+                                },
+                            });
+                        
+                            if (fetchResponse) {
+                                const data = await fetchResponse.json();
+                                const HtmlCode = data?.dataEntryForms?.map(form => {
+                                    if (form.htmlCode) {
+                                        let updatedHtml = form.htmlCode
+                                            .replace(/\\n/g, '')
+                                            .replace(/\\t/g, '')
+                                            .replace(/\\/g, '');
+                            
+                                        if (Object.keys(result).length > 0) {
+                                            Object.keys(result).forEach(key => {
+                                                const inputId = key; 
+                                                const inputValue = result[key]; 
+                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                            });
+                                        }
+                            
+                                        return updatedHtml;
+                                    }
+                            
+                                    return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
+                                });
+                            
+                                setDatasetDetails(HtmlCode);
+                            }
+                        }                    
+                    }
+                }
+                else{
                     if (username && password) {
                         const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
                             method: 'GET',
@@ -140,30 +212,27 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
                             },
                         });
-                    
                         if (fetchResponse) {
-                            const data = await fetchResponse.json();        
+                            const data = await fetchResponse.json();
                             const HtmlCode = data?.dataEntryForms?.map(form => {
                                 if (form.htmlCode) {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
                                         .replace(/\\/g, '');
-                    
-                                    Object.keys(result).forEach(key => {
-                                        const inputId = key; 
-                                        const inputValue = result[key]; 
-                                        updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                    });
-                    
+                        
+                        
                                     return updatedHtml;
                                 }
+                        
                                 return '';
                             });
-                    
+                        
                             setDatasetDetails(HtmlCode);
                         }
-                    } else {
+                        
+                    } 
+                    else {
                         const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
                             method: 'GET',
                             headers: {
@@ -174,28 +243,25 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     
                         if (fetchResponse) {
                             const data = await fetchResponse.json();
-                    
                             const HtmlCode = data?.dataEntryForms?.map(form => {
                                 if (form.htmlCode) {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
                                         .replace(/\\/g, '');
-                    
-                                    Object.keys(result).forEach(key => {
-                                        const inputId = key; 
-                                        const inputValue = result[key];
-                                        updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                    });
-                    
+                        
                                     return updatedHtml;
                                 }
+                        
                                 return '';
                             });
+                        
                             setDatasetDetails(HtmlCode);
                         }
-                    }                    
+                    } 
                 }
+
+              
             }       
         } catch (err) {
             console.error('Error fetching dataset details:', err);
@@ -306,7 +372,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             console.error('Error during data processing:', error.message);
         }
     };
-    
+
 
     return (
         <>
