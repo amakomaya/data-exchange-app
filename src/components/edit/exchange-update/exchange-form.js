@@ -70,6 +70,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
     const [peInfo, setPeInfo] = useState('');
+    const [period, setPeriod] = useState('');
+    const [orgUnit, setorgUnit] = useState('');
+
 
     const handleDatasetChange = (e) => {
         setSelectedDataset(e.target.value);
@@ -103,6 +106,11 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 const startDate = periodData[0].startDate;
                 const endDate = periodData[0].endDate;
                 const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
+                const orgUnit =  request?.ouInfo.map(({ name }) => name).join(', ')
+                const period = periodData.map(({ name }) => name).join(', ')
+                setPeriod(period)
+                setorgUnit(orgUnit)
+            
                 if(dx.length>0){
                     const analyticsData = await fetch(analyticsUrl);
                     if (analyticsData.ok) {
@@ -146,7 +154,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                         let updatedHtml = form.htmlCode
                                             .replace(/\\n/g, '')
                                             .replace(/\\t/g, '')
-                                            .replace(/\\/g, '');
+                                            .replace(/\\/g, '')
+                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+
                             
                                         if (Object.keys(result).length > 0) {
                                             Object.keys(result).forEach(key => {
@@ -182,7 +192,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                         let updatedHtml = form.htmlCode
                                             .replace(/\\n/g, '')
                                             .replace(/\\t/g, '')
-                                            .replace(/\\/g, '');
+                                            .replace(/\\/g, '')
+                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+
                             
                                         if (Object.keys(result).length > 0) {
                                             Object.keys(result).forEach(key => {
@@ -219,16 +231,18 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
-                                        .replace(/\\/g, '');
-                        
+                                        .replace(/\\/g, '')
+                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+
                         
                                     return updatedHtml;
                                 }
                         
                                 return '';
                             });
-                        
-                            setDatasetDetails(HtmlCode);
+                            const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
+
+                            setDatasetDetails(combinedHtml);
                         }
                         
                     } 
@@ -248,15 +262,17 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
-                                        .replace(/\\/g, '');
+                                        .replace(/\\/g, '')
+                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
                         
                                     return updatedHtml;
                                 }
                         
                                 return '';
                             });
+                            const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
                         
-                            setDatasetDetails(HtmlCode);
+                            setDatasetDetails(combinedHtml);
                         }
                     } 
                 }
@@ -529,6 +545,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
                             {datasetDetails && (
                                 <div>
+                                    <p><strong>Organization Unit:{orgUnit}</strong></p>
+                                    <p><strong>Periods:{period}</strong></p>
+
                                     <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
                                 </div>
                             )}
@@ -544,7 +563,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 primary
                                 onClick={handleConfirm}
                             >
-                                {i18n.t('Confirm')}
+                                {i18n.t('Confirm and Send')}
                             </Button>
                             <Button
                                 style={{
