@@ -71,7 +71,10 @@ export const useUpdateExchange = ({ onComplete }) => {
                     values,
                     requests,
                 });
-                const targetUrl = formattedValues?.target?.api.url
+                let targetUrl = formattedValues?.target?.api.url
+                if (targetUrl && !targetUrl.endsWith('/')) {
+                    targetUrl += '/';
+                }
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -84,7 +87,7 @@ export const useUpdateExchange = ({ onComplete }) => {
                            'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
                        },
                    });
-                   if(fetchResponse){
+                   if(fetchResponse.ok){
                        response = await fetchResponse.json();
                    }
                    
@@ -98,7 +101,7 @@ export const useUpdateExchange = ({ onComplete }) => {
                            'Authorization': 'ApiToken ' + accessToken
                        },
                    });
-                   if(fetchResponse){
+                   if(fetchResponse.ok){
                      response = await fetchResponse.json();
                    }
 
@@ -123,6 +126,7 @@ export const useUpdateExchange = ({ onComplete }) => {
             } catch (e) {
                 console.error(e);
                 setError(e);
+
             } finally {
                 setLoading(false);
             }
