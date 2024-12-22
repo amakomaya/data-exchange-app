@@ -58,7 +58,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [saveExchange, { loading: saving, error }] = useUpdateExchange({
         onComplete,
     });
-
     const [isModalOpen, setModalOpen] = useState(false);
     const [modalData, setModalData] = useState([]); 
     const [selectedDataset, setSelectedDataset] = useState('');
@@ -72,6 +71,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [peInfo, setPeInfo] = useState('');
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
+    const [err, setError] = useState('');
 
 
     const handleDatasetChange = (e) => {
@@ -94,7 +94,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     values,
                     requests,
                 });
-                const targetUrl = formattedValues?.target?.api.url
+                let targetUrl = formattedValues?.target?.api.url
+                if (targetUrl && !targetUrl.endsWith('/')) {
+                    targetUrl += '/';
+                }
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -147,7 +150,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
                                 },
                             });
-                            if (fetchResponse) {
+                            if (fetchResponse.ok) {
                                 const data = await fetchResponse.json();
                                 const HtmlCode = data?.dataEntryForms?.map(form => {
                                     if (form.htmlCode) {
@@ -185,7 +188,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 },
                             });
                         
-                            if (fetchResponse) {
+                            if (fetchResponse.ok) {
                                 const data = await fetchResponse.json();
                                 const HtmlCode = data?.dataEntryForms?.map(form => {
                                     if (form.htmlCode) {
@@ -224,7 +227,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
                             },
                         });
-                        if (fetchResponse) {
+                        if (fetchResponse.ok) {
                             const data = await fetchResponse.json();
                             const HtmlCode = data?.dataEntryForms?.map(form => {
                                 if (form.htmlCode) {
@@ -255,7 +258,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             },
                         });
                     
-                        if (fetchResponse) {
+                        if (fetchResponse.ok) {
                             const data = await fetchResponse.json();
                             const HtmlCode = data?.dataEntryForms?.map(form => {
                                 if (form.htmlCode) {
@@ -281,6 +284,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             }       
         } catch (err) {
             console.error('Error fetching dataset details:', err);
+            setError(err)
+
         } 
     };
     const handleCloseModal = () => {
@@ -295,11 +300,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         try {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
-            const targetUrl = dataValues?.target?.api.url;
+            let targetUrl = dataValues?.target?.api.url;
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
             const accessToken = dataValues?.target?.api.accessToken;
-    
+            if (targetUrl && !targetUrl.endsWith('/')) {
+                targetUrl += '/';
+            }
             let orgUnitID = null;
             analyticsRows.forEach((row) => {
                 orgUnitID = row[1];
@@ -376,6 +383,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
             if (!dataValueResponse.ok) {
                 console.error('Failed to send data values:', dataValueResponse.statusText);
+                alert('Failed to send data values');
                 return;
             }
     
@@ -386,12 +394,24 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
         } catch (error) {
             console.error('Error during data processing:', error.message);
+            setError(error)
         }
     };
 
 
     return (
         <>
+            {err && (
+                <NoticeBox
+                    error
+                    title="Error"
+                    className={
+                        styles.errorBoxContainer
+                    }
+                >
+                    {err.message}
+                </NoticeBox>
+            )}
             <Form
                 onSubmit={async (values, form) => {
                     try {                        
@@ -403,7 +423,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             requestsTouched,
                             newExchange: addMode,
                         });
-                        if (response) {                       
+                        if (response.ok) {                       
                             const datasetData = response.dataSets;
                               const combinedData = {
                                 datasetData,
@@ -414,12 +434,18 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             setModalData(combinedData); 
                             setModalOpen(true); 
                         }
+                      
                     } catch (err) {
                         console.error('Failed to save exchange:', err);
+                        setError(err)
+
+
                     }
                 }}
+                
                 initialValues={getInitialValuesFromExchange({ exchangeInfo })}
             >
+                
                 {({ handleSubmit }) => (
                     <div>
                         <div
@@ -483,8 +509,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     </div>
                 )}
             </Form>
+            
 
-            {isModalOpen && (
+            {isModalOpen &&  (
                 <div
                     style={{
                         position: 'fixed',
@@ -510,6 +537,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             maxHeight: '90vh',
                         }}
                     >
+                          
+                          
                         <h3>Select a Program</h3>
                            <select
                                 id="datasetDropdown"
