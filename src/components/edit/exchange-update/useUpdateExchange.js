@@ -90,6 +90,11 @@ export const useUpdateExchange = ({ onComplete }) => {
                    if(fetchResponse.ok){
                        response = await fetchResponse.json();
                    }
+                   else{
+                    response = await fetchResponse.json();
+
+                    setError(response);
+                }
                    
                 }
                 else{
@@ -104,6 +109,13 @@ export const useUpdateExchange = ({ onComplete }) => {
                    if(fetchResponse.ok){
                      response = await fetchResponse.json();
                    }
+
+                   else{
+                    response = await fetchResponse.json();
+
+                    setError(response);
+                }
+                
 
                 }
                 // const request = formattedValues?.source?.requests[0];
