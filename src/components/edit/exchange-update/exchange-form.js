@@ -401,17 +401,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
     return (
         <>
-            {err && (
-                <NoticeBox
-                    error
-                    title="Error"
-                    className={
-                        styles.errorBoxContainer
-                    }
-                >
-                    {err.message}
-                </NoticeBox>
-            )}
+         
             <Form
                 onSubmit={async (values, form) => {
                     try {                        
@@ -423,7 +413,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             requestsTouched,
                             newExchange: addMode,
                         });
-                        if (response.ok) {                       
+                       
+                        if (response.dataSets) {                       
                             const datasetData = response.dataSets;
                               const combinedData = {
                                 datasetData,
@@ -445,6 +436,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 
                 initialValues={getInitialValuesFromExchange({ exchangeInfo })}
             >
+
+            
                 
                 {({ handleSubmit }) => (
                     <div>
@@ -467,7 +460,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                         {error && (
                                             <NoticeBox
                                                 error
-                                                title="Could not save"
+                                                title="Could fetch data"
                                                 className={
                                                     styles.errorBoxContainer
                                                 }
@@ -475,6 +468,17 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                                 {error.message}
                                             </NoticeBox>
                                         )}
+                                        {err && (
+                                        <NoticeBox
+                                            error
+                                            title="Error"
+                                            className={
+                                                styles.errorBoxContainer
+                                            }
+                                        >
+                                            {err.message}
+                                        </NoticeBox>
+                                    )}
                                         {!saving && (
                                             <ExchangeFormContents
                                                 requestsState={requestsState}
@@ -538,7 +542,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         }}
                     >
                           
-                          
+                        
                         <h3>Select a Program</h3>
                            <select
                                 id="datasetDropdown"
