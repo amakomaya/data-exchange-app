@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2024-08-15T11:49:42.468Z\n"
-"PO-Revision-Date: 2024-08-15T11:49:42.468Z\n"
+"POT-Creation-Date: 2025-01-01T18:46:24.067Z\n"
+"PO-Revision-Date: 2025-01-01T18:46:24.067Z\n"
 
 msgid "Editing the target setup will require you to reenter authentication details."
 msgstr "Editing the target setup will require you to reenter authentication details."
@@ -32,9 +32,6 @@ msgstr "Exchange name"
 
 msgid "A unique name helps people find the right data exchange."
 msgstr "A unique name helps people find the right data exchange."
-
-msgid "Exchange target type"
-msgstr "Exchange target type"
 
 msgid "External"
 msgstr "External"
@@ -125,14 +122,11 @@ msgstr "Input category option combo ID scheme"
 msgid "Applies to category option combos."
 msgstr "Applies to category option combos."
 
-msgid "Add exchange"
-msgstr "Add exchange"
+msgid "Confirm and Send"
+msgstr "Confirm and Send"
 
-msgid "Edit exchange"
-msgstr "Edit exchange"
-
-msgid "Could not save"
-msgstr "Could not save"
+msgid "Close"
+msgstr "Close"
 
 msgid "{{firstOuName}} and {{ouLength}} others"
 msgstr "{{firstOuName}} and {{ouLength}} others"
@@ -280,11 +274,8 @@ msgstr ""
 msgid "Output organisation unit ID scheme"
 msgstr "Output organisation unit ID scheme"
 
-msgid "Edit exchange: Add request"
-msgstr "Edit exchange: Add request"
-
-msgid "Edit exchange: Edit request"
-msgstr "Edit exchange: Edit request"
+msgid "Edit request"
+msgstr "Edit request"
 
 msgid ""
 "This request currently uses inputIdScheme:code. The Data Exchange app does "
@@ -513,8 +504,8 @@ msgstr "No, go back"
 msgid "Yes, discard changes"
 msgstr "Yes, discard changes"
 
-msgid "Save exchange"
-msgstr "Save exchange"
+msgid "Get HMIS Montly Aggregate Report"
+msgstr "Get HMIS Montly Aggregate Report"
 
 msgid "Cancel"
 msgstr "Cancel"
@@ -559,6 +550,9 @@ msgstr "Learn more about data exchange"
 msgid "Data"
 msgstr "Data"
 
+msgid "Total"
+msgstr "Total"
+
 msgid "No data"
 msgstr "No data"
 
@@ -602,9 +596,6 @@ msgstr ""
 "It was not possible to submit your data. The message below provides "
 "additional detail."
 
-msgid "Close"
-msgstr "Close"
-
 msgid "Try again"
 msgstr "Try again"
 
@@ -613,15 +604,6 @@ msgstr "{{orgUnitCount}} organisation unit"
 
 msgid "{{orgUnitCount}} organisation units"
 msgstr "{{orgUnitCount}} organisation units"
-
-msgid "{{periodsCount}} period: {{periods}}"
-msgstr "{{periodsCount}} period: {{periods}}"
-
-msgid "{{periodsCount}} periods: {{periods}}"
-msgstr "{{periodsCount}} periods: {{periods}}"
-
-msgid "3+ periods: {{periods}}, and {{periodsCountLessThree}} more"
-msgstr "3+ periods: {{periods}}, and {{periodsCountLessThree}} more"
 
 msgid ""
 "{{reportCount}} reports to {{-exchangeName}} internally at "

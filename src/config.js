@@ -1,6 +1,10 @@
+const getBaseUrl = () => {
+        const { protocol, hostname, port } = window.location;
+        const portPart = port ? `:${port}` : '';
+        return `${protocol}//${hostname}${portPart}`;
+};
+
 export const config = {
-        baseUrl: 'https://www.health.dhis2mis.org',
-
+        baseUrl: getBaseUrl(),
         // baseUrl: 'http://localhost:9999',
-
 };
