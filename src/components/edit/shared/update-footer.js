@@ -52,7 +52,7 @@ DiscardModal.propTypes = {
     onClose: PropTypes.func,
 }
 
-export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
+export const EditItemFooter = ({ handleSubmit, requestsTouched,requestsState }) => {
     const [discardModalOpen, setDiscardModalOpen] = useState(false)
     const navigate = useNavigate()
     const { useFormState } = ReactFinalForm
@@ -73,10 +73,11 @@ export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
                     onClick={() => {
                         handleSubmit()
                     }}
-                >
+                    disabled={requestsState.length ==0} 
+                 >
                     {i18n.t('Get HMIS Montly Aggregate Report')}
                 </Button>
-                <Button
+                {/* <Button
                     onClick={() => {
                         !formDirty
                             ? onCancelConfirm()
@@ -84,7 +85,7 @@ export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
                     }}
                 >
                     {i18n.t('Cancel')}
-                </Button>
+                </Button> */}
             </ButtonStrip>
             <DiscardModal
                 open={discardModalOpen}
@@ -99,6 +100,7 @@ export const EditItemFooter = ({ handleSubmit, requestsTouched }) => {
 EditItemFooter.propTypes = {
     handleSubmit: PropTypes.func,
     requestsTouched: PropTypes.bool,
+    requestsState:PropTypes.bool,
 }
 
 export const EditRequestFooter = ({
