@@ -2,7 +2,7 @@ import i18n from '@dhis2/d2-i18n'
 import { Box, NoticeBox, ReactFinalForm, Modal, Button } from '@dhis2/ui'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState,useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AttributeProvider, useAppContext } from '../../../context/index.js'
 import { Loader } from '../../common/index.js'
@@ -47,7 +47,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         requestsTouched,
         setRequestsTouched,
     } = useRequests({ exchangeInfo });
-
     const { refetchExchanges } = useAppContext();
     const navigate = useNavigate();
     const onComplete = useCallback(async () => {
@@ -74,10 +73,15 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [err, setError] = useState('');
 
 
-    const handleDatasetChange = (e) => {
-        setSelectedDataset(e.target.value);
+ 
+    const handleRowClick = (id) => {
+        setSelectedDataset(id)
+        fetchDatasetDetails();
+        
     };
+    
     const fetchDatasetDetails = async () => {
+
         if (!selectedDataset) return;
         try {
             const baseUrl = config.baseUrl;            
@@ -292,14 +296,18 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         setModalOpen(false);
     };
 
+    
+
     const handleCloseDataModal = () => {
         setDataModalOpen(false);
     };
 
     const handleConfirm = async () => {
+
         try {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
+            const baseUrl = config.baseUrl;            
             let targetUrl = dataValues?.target?.api.url;
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
@@ -317,28 +325,14 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 return;
             }
     
-            let orgUnitResponse;
-    
-            if (username && password) {
-                orgUnitResponse = await fetch(`${targetUrl}api/organisationUnits/${orgUnitID}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic ' + btoa(`${username}:${password}`),
-                    },
-                });
-            } else if (accessToken) {
-                orgUnitResponse = await fetch(`${targetUrl}api/organisationUnits/${orgUnitID}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'ApiToken ' + accessToken,
-                    },
-                });
-            } else {
-                console.error('No authentication credentials provided.');
-                return;
-            }
+            
+            const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
+                method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
     
             if (!orgUnitResponse.ok) {
                 console.error('Failed to fetch organisation unit:', orgUnitResponse.statusText);
@@ -398,10 +392,22 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         }
     };
 
+    useEffect(() => {
+        if (modalData?.datasetData && modalData.datasetData.length > 0) {
+          setSelectedDataset(modalData.datasetData[0].id);
+        }
+      }, [modalData?.datasetData]);
+      
+      useEffect(() => {
+        if (selectedDataset) {
+          fetchDatasetDetails();
+        }
+      }, [selectedDataset]);
+
 
     return (
         <>
-         
+         {!isModalOpen  && (
             <Form
                 onSubmit={async (values, form) => {
                     try {                        
@@ -496,6 +502,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 <EditItemFooter
                                     handleSubmit={handleSubmit}
                                     requestsTouched={requestsTouched}
+                                    requestsState ={requestsState}
                                 />
                             </footer>
                         </div>
@@ -513,108 +520,139 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     </div>
                 )}
             </Form>
+         )}
             
+            {isModalOpen && (
+                        
 
-            {isModalOpen &&  (
                 <div
                     style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
+                        marginTop: '20px',
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '8px',
                         width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
                     }}
                 >
-                    <div
-                        style={{
-                            backgroundColor: 'white',
-                            padding: '20px',
-                            borderRadius: '8px',
-                            width: '80%',
-                            maxWidth: '1200px',
-                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-                            overflowY: 'scroll',
-                            maxHeight: '90vh',
-                        }}
-                    >
-                          
-                        
-                        <h3>Select a Program</h3>
-                           <select
-                                id="datasetDropdown"
-                                value={selectedDataset}
-                                onChange={handleDatasetChange}
-                            >
-                                <option value="" disabled>
-                                    -- Select a Dataset --
-                                </option>
-                                {modalData?.datasetData.map(({ id, displayName }) => (
-                                    <option key={id} value={id}>
-                                        {displayName}
-                                    </option>
-                                ))}
-                            </select>
-
-
-                            <Button
-                             style={{
+                     <Button
+                            style={{
                                 padding: '10px 15px',
                                 border: 'none',
                                 borderRadius: '5px',
                                 cursor: 'pointer',
-                                marginLeft: '30px',
-                                marginBottom:'10px'
                             }}
-                                primary
-                                onClick={fetchDatasetDetails}
-                                disabled={!selectedDataset}
-                            >
-                                Fetch Dataset Details
-                            </Button>
+                            primary
+                            onClick={handleCloseModal}
+                        >
+                            {i18n.t('Reset')}
+                        </Button>
+                    <h3>Select a Program</h3>
+                    <div style={{display:'flex'}}>
+                        <table
+                            style={{
+                                width: '300px',
+                                height:'400px',
+                                borderCollapse: 'collapse',
+                                marginBottom: '20px',
+                                float:'left',
+                                overflowX:'auto'
+                            }}
+                        >
+                            <thead>
+                                <tr>
+                                    <th
+                                        style={{
+                                            padding: '10px',
+                                            border: '1px solid #ccc',
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        Dataset Name
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {modalData?.datasetData.map(({ id, displayName }) => (
+                                    <tr
+                                        key={id}
+                                        style={{
+                                            cursor: 'pointer',
+                                            backgroundColor:selectedDataset === id ? '#d0e6ff' : 'white', 
+                                            
+                                        }}
+                                        onClick={() => handleRowClick(id)}    
 
-                            {datasetDetails && (
-                                <div>
-                                    <p><strong>Organization Unit:{orgUnit}</strong></p>
-                                    <p><strong>Periods:{period}</strong></p>
+                                        >
+                                        <td
+                                            style={{
+                                                padding: '10px',
+                                                border: '1px solid #ccc',
 
-                                    <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
-                                </div>
-                            )}
-                        <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <Button
-                                style={{
-                                    padding: '10px 15px',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                    marginRight: '10px',
-                                }}
-                                primary
-                                onClick={handleConfirm}
-                            >
-                                {i18n.t('Confirm and Send')}
-                            </Button>
-                            <Button
-                                style={{
-                                    padding: '10px 15px',
-                                    border: 'none',
-                                    borderRadius: '5px',
-                                    cursor: 'pointer',
-                                }}
-                                primary
-                                onClick={handleCloseModal}
-                            >
-                                {i18n.t('Close')}
-                            </Button>
-                        </div>
+                                            }}
+
+                                        >
+                                        {displayName} 
+                                        </td>
+                                        
+                                    </tr>
+                                ))}
+
+                            </tbody>
+                        </table>
+
+                    
+                            <div style={{
+                                width: '500px',
+                                borderCollapse: 'collapse',
+                                marginBottom: '20px',
+                                marginLeft:'20px',
+                                float:'right'
+                            }}>
+                                {datasetDetails && (
+                                            <div>
+                                                <p><strong>Organization Unit:{orgUnit}</strong></p>
+                                                <p><strong>Periods:{period}</strong></p>
+
+                                                <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                                            </div>
+                                        )}
+
+                            </div>
+                    </div>
+
+
+                
+
+                    <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            style={{
+                                padding: '10px 15px',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                                marginRight: '10px',
+                            }}
+                            primary
+                            onClick={handleConfirm}
+                        >
+                            {i18n.t('Confirm and Send')}
+                        </Button>
+                        <Button
+                            style={{
+                                padding: '10px 15px',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                            primary
+                            onClick={handleCloseModal}
+                        >
+                            {i18n.t('Close')}
+                        </Button>
                     </div>
                 </div>
             )}
-
 
             {isDataModalOpen && (
                 <div
