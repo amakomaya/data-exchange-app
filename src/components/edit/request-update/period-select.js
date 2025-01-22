@@ -20,8 +20,9 @@ export const PeriodSelector = ({ input, meta }) => {
         { name: "Chaitra", period: "12" },
     ];
 
-    const currentYearAD = moment().year();
-    const dateNP = adToBs(`${currentYearAD}-05-01`);
+     const currentDate = moment().format('YYYY-MM-DD');
+
+    const dateNP = adToBs(currentDate);
     let nepYear = dateNP.substring(0, 4);
 
     const initialYear = selectedPeriods?.[0]?.id.slice(0, 4) ||nepYear;
