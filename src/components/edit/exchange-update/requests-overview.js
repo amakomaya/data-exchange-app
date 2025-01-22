@@ -76,31 +76,14 @@ const RequestRow = ({
     setRequestEditMode,
 }) => (
     <TableRow key={request.name}>
-        {/* <DataTableCell onClick={() => setRequestEditMode(request)}>
-            {request.name}
-        </DataTableCell> */}
+       
         <DataTableCell onClick={() => setRequestEditMode(request)}>
             {getOuText({ ouInfo: request.ouInfo })}
         </DataTableCell>
         <DataTableCell onClick={() => setRequestEditMode(request)}>
             {request.peInfo.map(({ name }) => name).join(', ')}
         </DataTableCell>
-        {/* <DataTableCell onClick={() => setRequestEditMode(request)}>
-            {request.dx.length}
-        </DataTableCell> */}
-        {/* <DataTableCell>
-            {request.visualizationInfo?.id ? (
-                <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${baseUrl}/dhis-web-data-visualizer/index.html#/${request.visualizationInfo.id}`}
-                >
-                    {request.visualizationInfo?.name ?? ''}
-                </a>
-            ) : (
-                <span>{request.visualizationInfo?.name ?? ''}</span>
-            )}
-        </DataTableCell> */}
+    
         <DataTableCell>
             <Button
                 small
@@ -132,14 +115,11 @@ export const RequestsOverview = ({
 
     return (
         <>
-            <Table suppressZebraStriping>
+            <Table suppressZebraStriping >
                 <TableHead>
                     <TableRowHead>
-                        {/* <TableCellHead>{i18n.t('Name')}</TableCellHead> */}
                         <TableCellHead>{i18n.t('Org. units')}</TableCellHead>
                         <TableCellHead>{i18n.t('Periods')}</TableCellHead>
-                        {/* <TableCellHead>{i18n.t('Data items')}</TableCellHead> */}
-                        {/* <TableCellHead>{i18n.t('Visualization')}</TableCellHead> */}
                         <TableCellHead></TableCellHead>
                     </TableRowHead>
                 </TableHead>
@@ -158,6 +138,7 @@ export const RequestsOverview = ({
                         ))
                     )}
                 </TableBody>
+                
             </Table>
             <ButtonStrip className={styles.buttonContainer}>
                 <Button small onClick={() => setRequestEditMode({}, true)}
@@ -165,6 +146,10 @@ export const RequestsOverview = ({
                     {i18n.t('Add request')}
                 </Button>
             </ButtonStrip>
+            {requestsInfo.length === 0 && <p style={{color:'red'}}>*required</p>}
+
+
+
         </>
     )
 }
