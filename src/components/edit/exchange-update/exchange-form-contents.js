@@ -96,70 +96,7 @@ export const ExchangeFormContents = React.memo(
 
         return (
             <>
-                {/* <Subsection text={i18n.t('Basic setup')}>
-                    <div
-                        className={styles.subsectionField1000}
-                        data-test="exchange-name-input"
-                    >
-                        <Field
-                            name="name"
-                            label={i18n.t('Exchange name')}
-                            helpText={i18n.t(
-                                'A unique name helps people find the right data exchange.'
-                            )}
-                            value="test" 
-
-                            component={InputFieldFF}
-                            // validate={hasValue}
-                        />
-                    </div>
-                    <div
-                        className={styles.subsectionField}
-                        data-test="exchange-type-input"
-                    >
-                        <FieldContainer>
-                            <div
-                                className={styles.radiosContainer}
-                                data-test="exchange-types"
-                            >
-                                <RadioDecorator
-                                    label={i18n.t('External')}
-                                    helperText={i18n.t(
-                                        'Send data to another DHIS2 instance or data warehouse'
-                                    )}
-                                    currentSelected={
-                                        typeValue === EXCHANGE_TYPES.external
-                                    }
-                                >
-                                    <Field
-                                        name="type"
-                                        type="radio"
-                                        component={RadioFieldFF}
-                                        value={EXCHANGE_TYPES.external}
-                                        checked
-                                    />
-                                </RadioDecorator>
-
-                                <RadioDecorator
-                                    label={i18n.t('Internal')}
-                                    helperText={i18n.t(
-                                        'Manipulate data and transfer it inside this DHIS2 instance'
-                                    )}
-                                    currentSelected={
-                                        typeValue === EXCHANGE_TYPES.internal
-                                    }
-                                >
-                                    <Field
-                                        name="type"
-                                        type="radio"
-                                        component={RadioFieldFF}
-                                        value={EXCHANGE_TYPES.internal}
-                                    />
-                                </RadioDecorator>
-                            </div>
-                        </FieldContainer>
-                    </div>
-                </Subsection> */}
+                
                     <Subsection
                         text={i18n.t('Target setup')}
                         dataTest="target-setup"
@@ -178,16 +115,14 @@ export const ExchangeFormContents = React.memo(
                             <Field
                                 name="url"
                                 label={i18n.t('Target URL')}
-                                helpText={i18n.t(
-                                    'The URL of the target instance or data warehouse.'
-                                )}
+                               
                                 // disabled={editTargetSetupDisabled}
                                 component={InputFieldFF}
                                 validate={hasValue}
                             />
                         </div>
 
-                        <div>
+                        <div >
                             <FieldContainer
                                 label={i18n.t('Authentication method')}
                             >
@@ -212,9 +147,7 @@ export const ExchangeFormContents = React.memo(
                                     />
                                 </div>
                             </FieldContainer>
-                        </div>
-
-                        {authenticationValue === AUTHENTICATION_TYPES.pat && (
+                            {authenticationValue === AUTHENTICATION_TYPES.pat && (
                             <div
                                 className={styles.subsectionField600}
                                 data-test="exchange-auth-pat"
@@ -270,6 +203,9 @@ export const ExchangeFormContents = React.memo(
                                 />
                             </div>
                         )}
+                        </div>
+
+                       
                     </Subsection>
                
                 <Subsection text={i18n.t('Requests')}>
@@ -283,76 +219,15 @@ export const ExchangeFormContents = React.memo(
                             [requestsState]
                         )}
                         // redo this logic ^ (move to RequestsOverview to not need memoization)
-                        
+
                         setRequestEditMode={setRequestEditMode}
                         deleteRequest={deleteRequest}
                     />
+
                 </Subsection>
-                {/* <Subsection
-                    text={i18n.t('Input ID scheme options')}
-                    description={i18n.t(
-                        'Specify the scheme (ID, code, attribute value) used on the target system to match data coming from the source system.'
-                    )}
-                    className={styles.idSchemeSection}
-                >
-                    <>
-                        <EnableExternalEditWarning
-                            editTargetSetupDisabled={editTargetSetupDisabled}
-                            setEditTargetSetupDisabled={
-                                setEditTargetSetupDisabled
-                            }
-                            targetSetup={false}
-                        />
-                        <SchemeSelector
-                            label={i18n.t('Input general ID scheme')}
-                            description={i18n.t(
-                                'Used as the default ID scheme for all items. If the chosen scheme is not available for an item, it will fall back to using ID.'
-                            )}
-                            name="target_idScheme"
-                            disabled={editTargetSetupDisabled}
-                            dataTest="general-id-scheme-selector"
-                        />
-                        <SchemeSelector
-                            label={i18n.t('Input data element ID scheme')}
-                            description={i18n.t('Applies to data elements.')}
-                            name="target_dataElementIdScheme"
-                            disabled={editTargetSetupDisabled}
-                            canBeNone={true}
-                            defaultIDSchemeName={i18n.t(
-                                'Input general ID scheme'
-                            )}
-                            dataTest="element-id-scheme-selector"
-                        />
-                        <SchemeSelector
-                            label={i18n.t('Input organisation unit ID scheme')}
-                            description={i18n.t(
-                                'Applies to organisation units.'
-                            )}
-                            name="target_orgUnitIdScheme"
-                            disabled={editTargetSetupDisabled}
-                            canBeNone={true}
-                            defaultIDSchemeName={i18n.t(
-                                'Input general ID scheme'
-                            )}
-                            dataTest="org-unit-id-scheme-selector"
-                        />
-                        <SchemeSelector
-                            label={i18n.t(
-                                'Input category option combo ID scheme'
-                            )}
-                            description={i18n.t(
-                                'Applies to category option combos.'
-                            )}
-                            name="target_categoryOptionComboIdScheme"
-                            disabled={editTargetSetupDisabled}
-                            canBeNone={true}
-                            defaultIDSchemeName={i18n.t(
-                                'Input general ID scheme'
-                            )}
-                            dataTest="category-option-combo-scheme-selector"
-                        />
-                    </>
-                </Subsection> */}
+
+
+                
             </>
         )
     }
