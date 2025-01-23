@@ -1,5 +1,5 @@
 import i18n from '@dhis2/d2-i18n'
-import { Box, NoticeBox, ReactFinalForm, Modal, Button } from '@dhis2/ui'
+import { Box, NoticeBox, ReactFinalForm, Modal, Button} from '@dhis2/ui'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { useCallback, useState,useEffect } from 'react'
@@ -36,6 +36,7 @@ const formatError = (error) => {
 }
 
 
+
 export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const {
         requestEditInfo,
@@ -61,9 +62,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [modalData, setModalData] = useState([]); 
     const [selectedDataset, setSelectedDataset] = useState('');
     const [datasetDetails, setDatasetDetails] = useState(null);
-
     const [isDataModalOpen, setDataModalOpen] = useState(false);
-    const [DatamodalData, setDataModalData] = useState([]); 
+    const [DatamodalData, setDataModalData] = useState([]);
+    const [formValues, setFormValues] = useState({});
+ 
 
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
@@ -71,9 +73,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
     const [err, setError] = useState('');
+    const [showError, setShowError] = useState(!!error);
 
 
- 
     const handleRowClick = (id) => {
         setSelectedDataset(id)
         fetchDatasetDetails();
@@ -303,8 +305,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     };
 
     const handleConfirm = async () => {
-
+        setLoading(true); 
         try {
+            setError('')
+            setShowError(false);
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
@@ -320,10 +324,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 orgUnitID = row[1];
             });
     
-            if (!orgUnitID) {
-                console.error('Organisation Unit ID is missing.');
-                return;
-            }
     
             
             const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
@@ -336,6 +336,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
             if (!orgUnitResponse.ok) {
                 console.error('Failed to fetch organisation unit:', orgUnitResponse.statusText);
+                const errorMessage = 'Failed to fetch organisation unit';
+                setError({ message: errorMessage }); 
+                setShowError(true)
+             
                 return;
             }
     
@@ -377,7 +381,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
             if (!dataValueResponse.ok) {
                 console.error('Failed to send data values:', dataValueResponse.statusText);
-                alert('Failed to send data values');
+                const errorMessage = 'Failed to fetch organisation unit';
+                setError(errorMessage); 
+                setShowError(true)
+                
                 return;
             }
     
@@ -389,6 +396,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         } catch (error) {
             console.error('Error during data processing:', error.message);
             setError(error)
+            setShowError(true)
+        }finally {
+            setLoading(false); 
         }
     };
 
@@ -404,14 +414,35 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         }
       }, [selectedDataset]);
 
+      useEffect(() => {
+        if (error || err) {
+            setShowError(true); 
+            const timer = setTimeout(() => {
+                setShowError(false); 
+            }, 5000);
+    
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (exchangeInfo) {
+            setFormValues(getInitialValuesFromExchange({ exchangeInfo }));
+        }
+    }, [exchangeInfo]);
+    
+    
 
     return (
         <>
-         {!isModalOpen  && (
+         {!isModalOpen  && !isDataModalOpen &&(
             <Form
                 onSubmit={async (values, form) => {
+                    setFormValues(values); 
+
                     try {                        
                         const response = await saveExchange({
+                            
                             values,
                             form,
                             id: exchangeInfo?.id,
@@ -439,8 +470,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
                     }
                 }}
+                initialValues={formValues} 
+                keepDirtyOnReinitialize 
+
                 
-                initialValues={getInitialValuesFromExchange({ exchangeInfo })}
             >
 
             
@@ -463,7 +496,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                                 <Loader />
                                             </span>
                                         )}
-                                        {error && (
+                                        {error && showError && (
                                             <NoticeBox
                                                 error
                                                 title="Could fetch data"
@@ -474,7 +507,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                                 {error.message}
                                             </NoticeBox>
                                         )}
-                                        {err && (
+                                        {/* {err && showError && (
                                         <NoticeBox
                                             error
                                             title="Error"
@@ -484,7 +517,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                         >
                                             {err.message}
                                         </NoticeBox>
-                                    )}
+                                    )} */}
                                         {!saving && (
                                             <ExchangeFormContents
                                                 requestsState={requestsState}
@@ -522,9 +555,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             </Form>
          )}
             
-            {isModalOpen && (
-                        
-
+            {isModalOpen && !isDataModalOpen &&(
                 <div
                     style={{
                         marginTop: '20px',
@@ -535,6 +566,14 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
                     }}
                 >
+                    {err && showError && (
+                        <NoticeBox
+                            error
+                            title="Could fetch data"
+                            className={styles.errorBoxContainer}
+                        >
+                        </NoticeBox>
+                    )}
                      <Button
                             style={{
                                 padding: '10px 15px',
@@ -582,13 +621,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             
                                         }}
                                         onClick={() => handleRowClick(id)}    
-
+                                        message
                                         >
                                         <td
                                             style={{
                                                 padding: '10px',
                                                 border: '1px solid #ccc',
-
                                             }}
 
                                         >
@@ -622,7 +660,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     </div>
 
 
-                
+              
+                   
 
                     <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
                         <Button
@@ -637,6 +676,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             onClick={handleConfirm}
                         >
                             {i18n.t('Confirm and Send')}
+
                         </Button>
                         <Button
                             style={{
@@ -653,33 +693,19 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     </div>
                 </div>
             )}
-
+           
             {isDataModalOpen && (
                 <div
                     style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
+                        marginTop: '20px',
+                        backgroundColor: 'white',
+                        padding: '20px',
+                        borderRadius: '8px',
                         width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
                     }}
                 >
-                    <div
-                        style={{
-                            backgroundColor: 'white',
-                            padding: '20px',
-                            borderRadius: '8px',
-                            width: '80%',
-                            maxWidth: '600px',
-                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
-                            overflowY: 'scroll',
-                            maxHeight: '90vh',
-                        }}
-                    >
+                   
                         <h3>Import Status: {DatamodalData.status}</h3>
                         <p>Message: {DatamodalData.message}</p>
                         <p>Description: {DatamodalData.response.description}</p>
@@ -711,7 +737,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                
             )}
 
 

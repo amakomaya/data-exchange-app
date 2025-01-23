@@ -72,6 +72,9 @@ export const useUpdateExchange = ({ onComplete }) => {
                     requests,
                 });
                 let targetUrl = formattedValues?.target?.api.url
+                if(!targetUrl){
+                    targetUrl = 'https://hmis.gov.np/hmis'
+                }
                 if (targetUrl && !targetUrl.endsWith('/')) {
                     targetUrl += '/';
                 }
