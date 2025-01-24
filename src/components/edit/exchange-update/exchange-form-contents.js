@@ -113,7 +113,6 @@ export const ExchangeFormContents = React.memo(
                         <div
                             className={styles.subsectionField600}
                             data-test="exchange-url"
-                            style={{float:'left'}}
                         >
                         
                            
@@ -150,7 +149,7 @@ export const ExchangeFormContents = React.memo(
                         
                         </div>
 
-                        <div  style={{ float:'right',display: 'flex-block',marginRight:'1000px'}}>
+                        <div>
                             <FieldContainer
                                 label={i18n.t('Authentication method')}
                             >
@@ -235,11 +234,8 @@ export const ExchangeFormContents = React.memo(
 
                        
                     </Subsection>
-               <br/>
-               <br/>
-               <br/>
-                <Subsection >
-                    <h1 style={{marginTop:'80px',fontSize: '20px',fontWeight: '500',display:'inline-block' }} >Requests</h1>
+             
+                <Subsection text={i18n.t('Request')} >
                     <RequestsOverview
                         requestsInfo={useMemo(
                             () =>
