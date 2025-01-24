@@ -299,6 +299,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const handleCloseModal = () => {
         setModalOpen(false);
     };
+    const handleClearError = () => {
+        setError(false);
+        setShowError(false);
+    };
 
     
 
@@ -343,7 +347,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 const errorMessage = 'Failed to fetch organisation unit';
                 setError({ message: errorMessage }); 
                 setShowError(true)
-             
+                setIsLoading(false)
                 return;
             }
     
@@ -388,6 +392,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 const errorMessage = 'Failed to fetch organisation unit';
                 setError(errorMessage); 
                 setShowError(true)
+                setIsLoading(false);
+
                 
                 return;
             }
@@ -424,11 +430,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             setShowError(true); 
             const timer = setTimeout(() => {
                 setShowError(false); 
-            }, 5000);
+            }, 2000);
     
             return () => clearTimeout(timer);
         }
     }, [error]);
+
+    
 
     useEffect(() => {
         if (exchangeInfo) {
@@ -574,11 +582,17 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     {err && showError && (
                         <NoticeBox
                             error
-                            title="Could fetch data"
+                            title="Error"
                             className={styles.errorBoxContainer}
                         >
+                            <p>Could not send data</p>
                         </NoticeBox>
                     )}
+
+                    {err && showError && (() => {
+                    setTimeout(() => handleClearError(), 2000);
+                    return null; 
+                })()}
 
                     {isLoading &&( 
                         <span>
