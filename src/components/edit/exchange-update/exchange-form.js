@@ -590,9 +590,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     )}
 
                     {err && showError && (() => {
-                    setTimeout(() => handleClearError(), 2000);
-                    return null; 
-                })()}
+                        setTimeout(() => handleClearError(), 2000);
+                        return null; 
+                    })()}
 
                     {isLoading &&( 
                         <span>
@@ -668,11 +668,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
                     
                             <div style={{
-                                width: '500px',
+                                width: '100%',
                                 borderCollapse: 'collapse',
                                 marginBottom: '20px',
-                                marginLeft:'20px',
-                                float:'right'
+                                marginLeft:'50px',
+                                float:'right',
+                                overflowX:'auto'
                             }}>
                                 {datasetDetails && (
                                             <div>
