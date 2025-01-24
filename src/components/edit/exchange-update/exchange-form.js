@@ -65,8 +65,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [isDataModalOpen, setDataModalOpen] = useState(false);
     const [DatamodalData, setDataModalData] = useState([]);
     const [formValues, setFormValues] = useState({});
- 
-
+    const [isLoading, setIsLoading] = useState(false); 
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
     const [peInfo, setPeInfo] = useState('');
@@ -78,6 +77,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
     const handleRowClick = (id) => {
         setSelectedDataset(id)
+        setIsLoading(true); 
+
         fetchDatasetDetails();
         
     };
@@ -285,6 +286,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         }
                     } 
                 }
+                setIsLoading(false); 
 
               
             }       
@@ -302,13 +304,15 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
     const handleCloseDataModal = () => {
         setDataModalOpen(false);
+        setModalOpen(true); 
+
     };
 
     const handleConfirm = async () => {
-        setLoading(true); 
         try {
             setError('')
             setShowError(false);
+            setIsLoading(true); 
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
@@ -392,13 +396,14 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             setDataModalData(responseData);
             setModalOpen(false);
             setDataModalOpen(true);
+            setIsLoading(false);
+
     
         } catch (error) {
             console.error('Error during data processing:', error.message);
             setError(error)
             setShowError(true)
-        }finally {
-            setLoading(false); 
+            setIsLoading(false);
         }
     };
 
@@ -574,6 +579,14 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         >
                         </NoticeBox>
                     )}
+
+                    {isLoading &&( 
+                        <span>
+                            <Loader />
+                        </span>
+                                            
+                    
+                 )}
                      <Button
                             style={{
                                 padding: '10px 15px',
@@ -677,19 +690,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         >
                             {i18n.t('Confirm and Send')}
 
+
                         </Button>
-                        <Button
-                            style={{
-                                padding: '10px 15px',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                            }}
-                            primary
-                            onClick={handleCloseModal}
-                        >
-                            {i18n.t('Close')}
-                        </Button>
+                        
                     </div>
                 </div>
             )}
@@ -705,6 +708,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
                     }}
                 >
+                 
                    
                         <h3>Import Status: {DatamodalData.status}</h3>
                         <p>Message: {DatamodalData.message}</p>
