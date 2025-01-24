@@ -28,6 +28,8 @@ export const OrgUnitSelector = ({ input, meta }) => {
                     onChange(items)
                 }}
                 hideUserOrgUnits={true}
+                hideLevelSelect ={true}
+                hideGroupSelect={true}
             />
             <SelectorValidationError meta={meta} />
         </>
