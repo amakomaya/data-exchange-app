@@ -88,8 +88,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         if (!selectedDataset) return;
         try {
             const baseUrl = config.baseUrl;            
-            const endpoint = '/api/programIndicators';
-            const programIndicatorsUrl = `${baseUrl}${endpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
+            const programIndicatorsEndpoint = '/api/programIndicators';
+
+            const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
             const programIndicatorsData = await fetch(programIndicatorsUrl);
              if (programIndicatorsData.ok) {
                 const fetchedprogramIndicatorsData = await programIndicatorsData.json();
@@ -115,7 +116,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setPeInfo(peInfo); 
                 const startDate = periodData[0].startDate;
                 const endDate = periodData[0].endDate;
-                const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
+                const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel`;
                 const orgUnit =  request?.ouInfo.map(({ name }) => name).join(', ')
                 const period = periodData.map(({ name }) => name).join(', ')
                 setPeriod(period)
@@ -124,14 +125,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 if(dx.length>0){
                     const analyticsData = await fetch(analyticsUrl);
                     if (analyticsData.ok) {
-                        const fetchedAnalyticsData = await analyticsData.json();
+                        const fetchedAnalyticsData = await analyticsData.json(); 
                         const rows = fetchedAnalyticsData.rows;
                         setAnalyticsRows(rows); 
-                        const comboIdUrl = `${baseUrl}${endpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
+                        const comboIdUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
                         const comboIdData = await fetch(comboIdUrl);
                         const fetchedcomboIdData = await comboIdData.json();
                         const programIndicators = fetchedcomboIdData.programIndicators;
-                        const dynamicAttributeId = programIndicators[0]?.attributeValues[0]?.attribute.id;
                         const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
                         let result = {};
@@ -139,11 +139,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             const [value, orgunitID, rowValue] = row;
                             
                             programIndicators.forEach(indicator => {
-                                const matchingAttribute = indicator.attributeValues.find(attribute => attribute.attribute.id === dynamicAttributeId);
-                                
-                                if (matchingAttribute && matchingAttribute.value === value) {
-                                    const key = `${value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
-                    
+                                const matchingAttribute = indicator.id;
+                                const matchingAttributeId = indicator.attributeValues.find(attribute => attribute.attribute.id === "b8KbU93phhz");
+                                if (matchingAttribute === value) {
+                                    const key = `${matchingAttributeId.value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
                                     result[key] = rowValue;
                                 }
     
@@ -289,7 +288,209 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setIsLoading(false); 
 
               
-            }       
+            } 
+            else{
+                const indicatorsEndpoint = '/api/indicators';
+                const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
+                const indicatorsData = await fetch(indicatorsUrl);
+                if (indicatorsData.ok) {
+                    const fetchedIndicatorsData = await indicatorsData.json();
+                    const dx = fetchedIndicatorsData?.indicators.map(data => data.id).join(';');
+                    const id = fetchedIndicatorsData?.indicators.map(data => data.id).join(','); 
+                    const values =modalData.values;
+                    const requests = modalData.requestsState
+                    const formattedValues = getExchangeValuesFromForm({
+                        values,
+                        requests,
+                    });
+                    let targetUrl = formattedValues?.target?.api.url
+                    if (targetUrl && !targetUrl.endsWith('/')) {
+                        targetUrl += '/';
+                    }
+                    const username = formattedValues?.target?.api.username
+                    const password = formattedValues?.target?.api.password
+                    const accessToken =formattedValues?.target?.api.accessToken
+                    const request = formattedValues?.source?.requests[0];
+                    const ou = request?.ou.join(';'); 
+                    const periodData = request?.peInfo;
+                    const peInfo = periodData[0].id;
+                    setPeInfo(peInfo); 
+                    const startDate = periodData[0].startDate;
+                    const endDate = periodData[0].endDate;
+                    const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel&outputIdScheme=ATTRIBUTE:b8KbU93phhz`;
+                    const orgUnit =  request?.ouInfo.map(({ name }) => name).join(', ')
+                    const period = periodData.map(({ name }) => name).join(', ')
+                    setPeriod(period)
+                    setorgUnit(orgUnit)
+                
+                    if(dx.length>0){
+                        const analyticsData = await fetch(analyticsUrl);
+                        if (analyticsData.ok) {
+                            const fetchedAnalyticsData = await analyticsData.json();
+                            const rows = fetchedAnalyticsData.rows;
+                            setAnalyticsRows(rows); 
+                            const comboIdUrl = `${baseUrl}${indicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
+                            const comboIdData = await fetch(comboIdUrl);
+                            const fetchedcomboIdData = await comboIdData.json();
+                            const indicators = fetchedcomboIdData.indicators;
+                            const dynamicAttributeId = indicators[0]?.attributeValues[0]?.attribute.id;
+                            const categoryOptionCombos = indicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
+                            setCategoryOptionCombos(categoryOptionCombos); 
+                            let result = {};
+                            rows.forEach(row => {
+                                const [value, orgunitID, rowValue] = row;
+                                
+                                indicators.forEach(indicator => {
+                                    const matchingAttribute = indicator.attributeValues.find(attribute => attribute.attribute.id === dynamicAttributeId);
+                                    
+                                    if (matchingAttribute && matchingAttribute.value === value) {
+                                        const key = `${value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
+                                        result[key] = rowValue;
+                                    }
+        
+                                });
+                            });
+                            if (username && password) {
+                                const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                                    },
+                                });
+                                if (fetchResponse.ok) {
+                                    const data = await fetchResponse.json();
+                                    const HtmlCode = data?.dataEntryForms?.map(form => {
+                                        if (form.htmlCode) {
+                                            let updatedHtml = form.htmlCode
+                                                .replace(/\\n/g, '')
+                                                .replace(/\\t/g, '')
+                                                .replace(/\\/g, '')
+                                                .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+    
+                                
+                                            if (Object.keys(result).length > 0) {
+                                                Object.keys(result).forEach(key => {
+                                                    const inputId = key; 
+                                                    const inputValue = result[key]; 
+                                                    updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                                });
+                                            }
+                                
+                                            return updatedHtml;
+                                        }
+                                
+                                        return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
+                                    });
+                                
+                                    setDatasetDetails(HtmlCode);
+                                }
+                                
+                            } 
+                            else {
+                                const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': 'ApiToken ' + accessToken
+                                    },
+                                });
+                            
+                                if (fetchResponse.ok) {
+                                    const data = await fetchResponse.json();
+                                    const HtmlCode = data?.dataEntryForms?.map(form => {
+                                        if (form.htmlCode) {
+                                            let updatedHtml = form.htmlCode
+                                                .replace(/\\n/g, '')
+                                                .replace(/\\t/g, '')
+                                                .replace(/\\/g, '')
+                                                .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+    
+                                
+                                            if (Object.keys(result).length > 0) {
+                                                Object.keys(result).forEach(key => {
+                                                    const inputId = key; 
+                                                    const inputValue = result[key]; 
+                                                    updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
+                                                });
+                                            }
+                                
+                                            return updatedHtml;
+                                        }
+                                
+                                        return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
+                                    });
+                                
+                                    setDatasetDetails(HtmlCode);
+                                }
+                            }                    
+                        }
+                    }
+                    else{
+                        if (username && password) {
+                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                                },
+                            });
+                            if (fetchResponse.ok) {
+                                const data = await fetchResponse.json();
+                                const HtmlCode = data?.dataEntryForms?.map(form => {
+                                    if (form.htmlCode) {
+                                        let updatedHtml = form.htmlCode
+                                            .replace(/\\n/g, '')
+                                            .replace(/\\t/g, '')
+                                            .replace(/\\/g, '')
+                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+    
+                            
+                                        return updatedHtml;
+                                    }
+                            
+                                    return '';
+                                });
+                                const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
+    
+                                setDatasetDetails(combinedHtml);
+                            }
+                            
+                        } 
+                        else {
+                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'ApiToken ' + accessToken
+                                },
+                            });
+                        
+                            if (fetchResponse.ok) {
+                                const data = await fetchResponse.json();
+                                const HtmlCode = data?.dataEntryForms?.map(form => {
+                                    if (form.htmlCode) {
+                                        let updatedHtml = form.htmlCode
+                                            .replace(/\\n/g, '')
+                                            .replace(/\\t/g, '')
+                                            .replace(/\\/g, '')
+                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+                            
+                                        return updatedHtml;
+                                    }
+                            
+                                    return '';
+                                });
+                                const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
+                            
+                                setDatasetDetails(combinedHtml);
+                            }
+                        } 
+                    }
+                    setIsLoading(false);     
+                } 
+
+            }      
         } catch (err) {
             console.error('Error fetching dataset details:', err);
             setError(err)
@@ -332,8 +533,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 orgUnitID = row[1];
             });
     
-    
-            
             const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
                 method: 'GET',
                         headers: {
@@ -657,7 +856,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             }}
 
                                         >
-                                        {displayName} 
+                                       {displayName} 
                                         </td>
                                         
                                     </tr>
