@@ -14,7 +14,7 @@ import { getInitialValuesFromExchange } from './getExchangeValues.js'
 import { useRequests } from './useRequests.js'
 import { getExchangeValuesFromForm } from './getExchangeValues.js'
 import { config } from '../../../config';
-
+import moment from 'moment';
 
 import { useUpdateExchange } from './useUpdateExchange.js'
 
@@ -73,6 +73,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [orgUnit, setorgUnit] = useState('');
     const [err, setError] = useState('');
     const [showError, setShowError] = useState(!!error);
+    const [reportingStatusRows, setReportingStatusRows] = useState([]);
+    const [counterRows, setcounterRows] = useState({});
+
 
 
     const handleRowClick = (id) => {
@@ -89,8 +92,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         try {
             const baseUrl = config.baseUrl;            
             const programIndicatorsEndpoint = '/api/programIndicators';
-
-            const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
+            const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
             const programIndicatorsData = await fetch(programIndicatorsUrl);
              if (programIndicatorsData.ok) {
                 const fetchedprogramIndicatorsData = await programIndicatorsData.json();
@@ -128,18 +130,19 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         const fetchedAnalyticsData = await analyticsData.json(); 
                         const rows = fetchedAnalyticsData.rows;
                         setAnalyticsRows(rows); 
-                        const comboIdUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues`;
+                        const comboIdUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues&paging=false`;
                         const comboIdData = await fetch(comboIdUrl);
                         const fetchedcomboIdData = await comboIdData.json();
                         const programIndicators = fetchedcomboIdData.programIndicators;
                         const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
+                        let counters = {};
+                       
                         const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
                         const reportData = await fetch(reportUrl);
                         const fetchedreportData = await reportData.json();
                         const reportRows = fetchedreportData.listGrid.rows;
-                        let counters = {};
-                        
+                        setReportingStatusRows(reportRows)
                         const keyMappings = {
                             "0_9_YEARS-female": "XjuXeaVPUsr-I1gylzOskBs-val",
                             "0_9_YEARS-male": "XjuXeaVPUsr-TTNFd2X49S6-val",
@@ -180,8 +183,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             "yes-GREATER_70-female":"ZNYzRQGhxpd-M0yrPwi8vEK-val",
                             "yes-GREATER_70-male":"ZNYzRQGhxpd-DYUdGTQhgf9-val"
                         };  
-                     
-                   
+                        
                         reportRows.forEach(row => {
                             let [trackedentityid, programstageid, occurreddate, organisationunituid, old_new_value, referred_value,age_group, gender, age_gender] = row;
                             if (!gender || gender.trim() === "") {
@@ -207,6 +209,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             }
                                                 
                         });
+                        setcounterRows(counters)
+                        
                         let result = {};
                         rows.forEach(row => {
                             const [value, orgunitID, rowValue] = row;
@@ -416,9 +420,15 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 targetUrl += '/';
             }
             let orgUnitID = null;
-            analyticsRows.forEach((row) => {
-                orgUnitID = row[1];
-            });
+            if (reportingStatusRows.length > 0) {
+                reportingStatusRows.forEach((row) => {
+                    orgUnitID = row[3];
+                });
+            } else {
+                analyticsRows.forEach((row) => {
+                    orgUnitID = row[1];
+                });
+            }
     
             const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
                 method: 'GET',
@@ -439,19 +449,34 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
             const orgUnitData = await orgUnitResponse.json();
             const orgUnitCode = orgUnitData.code;
-    
-            const payload = {
-                dataSet: selectedDataset,
-                orgUnitIdScheme: 'code',
-                dataValues: analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
+            let dataValue = [];
+
+            if (selectedDataset === 'JduJyrFWhhJ') {
+                dataValue = Object.entries(counterRows).map(([key, value]) => {
+                    const [dataElement, categoryOptionCombo] = key.split('-').slice(0, 2);
+                    return {
+                        dataElement,
+                        categoryOptionCombo,
+                        value
+                    };
+                });
+            } else {
+                dataValue = analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
                     dataElement,
-                    orgUnit:orgUnitCode,
-                    period: peInfo,
                     categoryOptionCombo: categoryOptionCombos[index],
                     value: parseInt(rowValue, 10),
-                })),
+                }));
+            }
+
+
+            const payload = {
+                dataSet: selectedDataset,
+                completeDate: moment().format('YYYY-MM-DD HH:mm:ss'),
+                period: peInfo,
+                orgUnitIdScheme: 'code',
+                orgUnit:orgUnitCode,
+                dataValues: dataValue
             };
-    
             let dataValueResponse;
             if (username && password) {
                 dataValueResponse = await fetch(`${targetUrl}api/dataValueSets`, {
@@ -743,7 +768,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             }}
 
                                         >
-                                       {displayName} 
+                                    {displayName} 
                                         </td>
                                         
                                     </tr>
