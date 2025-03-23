@@ -140,6 +140,10 @@ export const ExchangeFormContents = React.memo(
                                             value="https://hmis.amakomaya.com"
                                             label={i18n.t('Test System: https://hmis.amakomaya.com')}
                                         />
+                                        <SingleSelectOption
+                                            value="http://202.166.205.218/hmisdemo"
+                                            label={i18n.t('Demo System: http://202.166.205.218/hmisdemo')}
+                                        />
                                        {/* {meta.touched && meta.error && (
                                                 <span style={{ color: 'red', fontSize: '12px' }}>{meta.error}</span>
                                             )} */}
