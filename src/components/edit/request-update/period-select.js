@@ -47,7 +47,6 @@ export const PeriodSelector = ({ input, meta }) => {
             let endDateEN;
             if (startofNextMonth == 13) {
                const nextYear = parseInt(selectedYear) + 1;
-               console.log(nextYear,'nextYear')
                endDateEN = `${nextYear}-01-01`
             }
             else{
