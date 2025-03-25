@@ -44,7 +44,15 @@ export const PeriodSelector = ({ input, meta }) => {
         if (selectedYear && selectedMonth) {
             const startofNextMonth = parseInt(selectedMonth) + 1;
             const startDateEN = `${selectedYear}-${selectedMonth}-01`;
-            const endDateEN = `${selectedYear}-${startofNextMonth.toString().padStart(2, '0')}-01`;
+            let endDateEN;
+            if (startofNextMonth == 13) {
+               const nextYear = parseInt(selectedYear) + 1;
+               console.log(nextYear,'nextYear')
+               endDateEN = `${nextYear}-01-01`
+            }
+            else{
+                endDateEN = `${selectedYear}-${startofNextMonth.toString().padStart(2, '0')}-01`;
+            }
 
             const startDate = convertDateToAD(startDateEN);
             const endPrevDate = convertDateToAD(endDateEN);
