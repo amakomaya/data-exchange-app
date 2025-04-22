@@ -96,301 +96,28 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
             const programIndicatorsData = await fetch(programIndicatorsUrl);
             const indicatorsEndpoint = '/api/indicators';
-            const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}`;
+            const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
             const indicatorsData = await fetch(indicatorsUrl);
 
 
-             if (programIndicatorsData.ok) {
-                const fetchedprogramIndicatorsData = await programIndicatorsData.json();
-                const dx = fetchedprogramIndicatorsData?.programIndicators.map(data => data.id).join(';');
-                const id = fetchedprogramIndicatorsData?.programIndicators.map(data => data.id).join(','); 
-                const values =modalData.values;
-                const requests = modalData.requestsState
-                const formattedValues = getExchangeValuesFromForm({
-                    values,
-                    requests,
-                });
-                let targetUrl = formattedValues?.target?.api.url
-                if (targetUrl && !targetUrl.endsWith('/')) {
-                    targetUrl += '/';
+             if (programIndicatorsData.ok || indicatorsData.ok) {
+                let dx = '';
+                let id = '';
+                let indicators = [];
+                if (programIndicatorsData.ok) {
+                    const fetchedprogramIndicatorsData = await programIndicatorsData.json();
+                    dx = fetchedprogramIndicatorsData?.programIndicators?.map(data => data.id).join(';') || '';
+                    id = fetchedprogramIndicatorsData?.programIndicators?.map(data => data.id).join(',') || '';
                 }
-                const username = formattedValues?.target?.api.username
-                const password = formattedValues?.target?.api.password
-                const accessToken =formattedValues?.target?.api.accessToken
-                const request = formattedValues?.source?.requests[0];
-                const ou = request?.ou.join(';'); 
-                const periodData = request?.peInfo;
-                const peInfo = periodData[0].id;
-                setPeInfo(peInfo); 
-                const startDate = periodData[0].startDate;
-                const endDate = periodData[0].endDate;
-                const analyticsUrl = `${baseUrl}/api/analytics.json?dimension=dx:${dx}&dimension=ou:${ou}&startDate=${startDate}&endDate=${endDate}&outputOrgUnitIdScheme=ATTRIBUTE:tL7ErP7HBel`;
-                const orgUnit =  request?.ouInfo.map(({ name }) => name).join(', ')
-                const period = periodData.map(({ name }) => name).join(', ')
-                setPeriod(period)
-                setorgUnit(orgUnit)
-            
-                if(dx.length>0){
-                    const analyticsData = await fetch(analyticsUrl);
-                    if (analyticsData.ok) {
-                        const fetchedAnalyticsData = await analyticsData.json(); 
-                        const rows = fetchedAnalyticsData.rows;
-                        setAnalyticsRows(rows); 
-                        const comboIdUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues&paging=false`;
-                        const comboIdData = await fetch(comboIdUrl);
-                        const fetchedcomboIdData = await comboIdData.json();
-                        const programIndicators = fetchedcomboIdData.programIndicators;
-                        const categoryOptionCombos = programIndicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
-                        setCategoryOptionCombos(categoryOptionCombos); 
-                        let counters = {};
-                       
-                        const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
-                        const reportData = await fetch(reportUrl);
-                        const fetchedreportData = await reportData.json();
-                        const reportRows = fetchedreportData.listGrid.rows;
-                        setReportingStatusRows(reportRows)
-                        const keyMappings = {
-                            "0_9_YEARS-female": "XjuXeaVPUsr-I1gylzOskBs-val",
-                            "0_9_YEARS-male": "XjuXeaVPUsr-TTNFd2X49S6-val",
-                            "10_14_YEARS-female": "XjuXeaVPUsr-ciTvZ1HjQTw-val",
-                            "10_14_YEARS-male": "XjuXeaVPUsr-SDgsEKTs0IH-val",
-                            "15_19_YEARS-female": "XjuXeaVPUsr-RnH2ZpATWSI-val",
-                            "15_19_YEARS-male": "XjuXeaVPUsr-ffNSZ7u5Y5P-val",
-                            "20_59_YEARS-female": "XjuXeaVPUsr-sfmUgn8yywu-val",
-                            "20_59_YEARS-male": "XjuXeaVPUsr-iUcXHCikw4W-val",
-                            "60_69_YEARS-female": "XjuXeaVPUsr-COAFy42YNLg-val",
-                            "60_69_YEARS-male": "XjuXeaVPUsr-D7tJYC2XYrC-val",
-                            "GREATER_70-female": "XjuXeaVPUsr-M0yrPwi8vEK-val",
-                            "GREATER_70-male": "XjuXeaVPUsr-DYUdGTQhgf9-val",
-
-                            "1-0_9_YEARS-female": "HscG3R78Jzc-I1gylzOskBs-val",
-                            "1-0_9_YEARS-male": "HscG3R78Jzc-TTNFd2X49S6-val",
-                            "1-10_14_YEARS-female":"HscG3R78Jzc-ciTvZ1HjQTw-val",
-                            "1-10_14_YEARS-male":"HscG3R78Jzc-SDgsEKTs0IH-val",
-                            "1-15_19_YEARS-female":"HscG3R78Jzc-RnH2ZpATWSI-val",
-                            "1-15_19_YEARS-male":"HscG3R78Jzc-ffNSZ7u5Y5P-val",
-                            "1-20_59_YEARS-female":"HscG3R78Jzc-sfmUgn8yywu-val",
-                            "1-20_59_YEARS-male":"HscG3R78Jzc-iUcXHCikw4W-val",
-                            "1-60_69_YEARS-female":"HscG3R78Jzc-COAFy42YNLg-val",
-                            "1-60_69_YEARS-male":"HscG3R78Jzc-D7tJYC2XYrC-val",
-                            "1-GREATER_70-female":"HscG3R78Jzc-M0yrPwi8vEK-val",
-                            "1-GREATER_70-male":"HscG3R78Jzc-DYUdGTQhgf9-val",
-
-                            "yes-0_9_YEARS-female":"ZNYzRQGhxpd-I1gylzOskBs-val",
-                            "yes-0_9_YEARS-male":"ZNYzRQGhxpd-TTNFd2X49S6-val",
-                            "yes-10_14_YEARS-female":"ZNYzRQGhxpd-ciTvZ1HjQTw-val",
-                            "yes-10_14_YEARS-male":"ZNYzRQGhxpd-SDgsEKTs0IH-val",
-                            "yes-15_19_YEARS-female":"ZNYzRQGhxpd-RnH2ZpATWSI-val",
-                            "yes-15_19_YEARS-male":"ZNYzRQGhxpd-ffNSZ7u5Y5P-val",
-                            "yes-20_59_YEARS-female":"ZNYzRQGhxpd-sfmUgn8yywu-val",
-                            "yes-20_59_YEARS-male":"ZNYzRQGhxpd-iUcXHCikw4W-val",
-                            "yes-60_69_YEARS-female":"ZNYzRQGhxpd-COAFy42YNLg-val",
-                            "yes-60_69_YEARS-male":"ZNYzRQGhxpd-D7tJYC2XYrC-val",
-                            "yes-GREATER_70-female":"ZNYzRQGhxpd-M0yrPwi8vEK-val",
-                            "yes-GREATER_70-male":"ZNYzRQGhxpd-DYUdGTQhgf9-val"
-                        };  
-                        
-                        reportRows.forEach(row => {
-                            let [trackedentityid, programstageid, occurreddate, organisationunituid, old_new_value, referred_value,age_group, gender, age_gender] = row;
-                            if (!gender || gender.trim() === "") {
-                                gender = "female";
-                            }
-                        
-                            if (referred_value && referred_value.trim() !== "") {
-                                referred_value = "yes";
-                            }
-                            let key1 = keyMappings[`${age_group}-${gender}`]; 
-                            let key2 = keyMappings[`${old_new_value}-${age_group}-${gender}`]; 
-                            let key3 = keyMappings[`${referred_value}-${age_group}-${gender}`]; 
-                            
-
-                            if (key1) {
-                                counters[key1] = (counters[key1] || 0) + 1;
-                            }
-                            if (key2) {
-                                counters[key2] = (counters[key2] || 0) + 1;
-                            }
-                            if (key3) {
-                                counters[key3] = (counters[key3] || 0) + 1;
-                            }
-                                                
-                        });
-                        setcounterRows(counters)
-                        
-                        let result = {};
-                        rows.forEach(row => {
-                            const [value, orgunitID, rowValue] = row;
-                            
-                            programIndicators.forEach(indicator => {
-                                const matchingAttribute = indicator.id;
-                                const matchingAttributeId = indicator.attributeValues.find(attribute => attribute.attribute.id === "b8KbU93phhz");
-                                if (matchingAttribute === value) {
-                                    const key = `${matchingAttributeId.value}-${indicator.aggregateExportCategoryOptionCombo}-val`;
-                                    result[key] = rowValue; 
-                                }
-    
-                            });
-                        });
-                        if (username && password) {
-                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
-                                },
-                            });
-                            if (fetchResponse.ok) {
-                                const data = await fetchResponse.json();
-                                const HtmlCode = data?.dataEntryForms?.map(form => {
-                                    if (form.htmlCode) {
-                                        let updatedHtml = form.htmlCode
-                                            .replace(/\\n/g, '')
-                                            .replace(/\\t/g, '')
-                                            .replace(/\\/g, '')
-                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
-
-                            
-                                        if (Object.keys(result).length > 0) {
-                                            Object.keys(result).forEach(key => {
-                                                const inputId = key; 
-                                                const inputValue = result[key]; 
-                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                            });
-                                        }
-                                        if (Object.keys(counters).length > 0) {
-                                            Object.keys(counters).forEach(key => {
-                                                const inputId = key; 
-                                                const inputValue = counters[key]; 
-                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                            });
-                                        }
-                            
-                            
-                                        return updatedHtml;
-                                    }
-                            
-                                    return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
-                                });
-                            
-                                setDatasetDetails(HtmlCode);
-                            }
-                            
-                        } 
-                        else {
-                            const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
-                                method: 'GET',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'ApiToken ' + accessToken
-                                },
-                            });
-                        
-                            if (fetchResponse.ok) {
-                                const data = await fetchResponse.json();
-                                const HtmlCode = data?.dataEntryForms?.map(form => {
-                                    if (form.htmlCode) {
-                                        let updatedHtml = form.htmlCode
-                                            .replace(/\\n/g, '')
-                                            .replace(/\\t/g, '')
-                                            .replace(/\\/g, '')
-                                            .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
-
-                            
-                                        if (Object.keys(result).length > 0) {
-                                            Object.keys(result).forEach(key => {
-                                                const inputId = key; 
-                                                const inputValue = result[key]; 
-                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                            });
-                                        }
-                                        if (Object.keys(counters).length > 0) {
-                                            Object.keys(counters).forEach(key => {
-                                                const inputId = key; 
-                                                const inputValue = counters[key]; 
-                                                updatedHtml = updatedHtml.replace(new RegExp(`id="${inputId}"`, 'g'), `id="${inputId}" value="${inputValue}"`);
-                                            });
-                                        }
-                            
-                                        return updatedHtml;
-                                    }
-                            
-                                    return form.htmlCode.replace(/\\n/g, '').replace(/\\t/g, '').replace(/\\/g, '');
-                                });
-                            
-                                setDatasetDetails(HtmlCode);
-                            }
-                        }                    
-                    }
-                }
-                else{
-                    if (username && password) {
-                        const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
-                            },
-                        });
-                        if (fetchResponse.ok) {
-                            const data = await fetchResponse.json();
-                            const HtmlCode = data?.dataEntryForms?.map(form => {
-                                if (form.htmlCode) {
-                                    let updatedHtml = form.htmlCode
-                                        .replace(/\\n/g, '')
-                                        .replace(/\\t/g, '')
-                                        .replace(/\\/g, '')
-                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
-
-                        
-                                    return updatedHtml;
-                                }
-                        
-                                return '';
-                            });
-                            const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
-
-                            setDatasetDetails(combinedHtml);
-                        }
-                        
-                    } 
-                    else {
-                        const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'ApiToken ' + accessToken
-                            },
-                        });
+                if (indicatorsData.ok) {
+                    const fetchedIndicatorsData = await indicatorsData.json();
+                    const indicatorDx = fetchedIndicatorsData?.indicators?.map(data => data.id).join(';') || '';
+                    const indicatorId = fetchedIndicatorsData?.indicators?.map(data => data.id).join(',') || '';
                     
-                        if (fetchResponse.ok) {
-                            const data = await fetchResponse.json();
-                            const HtmlCode = data?.dataEntryForms?.map(form => {
-                                if (form.htmlCode) {
-                                    let updatedHtml = form.htmlCode
-                                        .replace(/\\n/g, '')
-                                        .replace(/\\t/g, '')
-                                        .replace(/\\/g, '')
-                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
-                        
-                                    return updatedHtml;
-                                }
-                        
-                                return '';
-                            });
-                            const combinedHtml =  HtmlCode.join('') + '<p><strong>No data found</strong></p>' 
-                        
-                            setDatasetDetails(combinedHtml);
-                        }
-                    } 
+                    dx = dx ? `${dx};${indicatorDx}` : indicatorDx;
+                    id = id ? `${id},${indicatorId}` : indicatorId;
                 }
-                setIsLoading(false); 
 
-              
-            } 
-            if (indicatorsData.ok) {
-                const fetchedIndicatorsData = await indicatorsData.json();
-                const dx = fetchedIndicatorsData?.indicators.map(data => data.id).join(';');
-                const id = fetchedIndicatorsData?.indicators.map(data => data.id).join(','); 
                 const values =modalData.values;
                 const requests = modalData.requestsState
                 const formattedValues = getExchangeValuesFromForm({
@@ -423,10 +150,21 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         const fetchedAnalyticsData = await analyticsData.json(); 
                         const rows = fetchedAnalyticsData.rows;
                         setAnalyticsRows(rows); 
-                        const comboIdUrl = `${baseUrl}${indicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues&paging=false`;
-                        const comboIdData = await fetch(comboIdUrl);
-                        const fetchedcomboIdData = await comboIdData.json();
-                        const indicators = fetchedcomboIdData.indicators;
+                        const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues&paging=false`;
+                        const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=id:in:[${id}]&fields=id,name,aggregateExportCategoryOptionCombo,attributeValues&paging=false`;
+                        const [programIndicatorsData, indicatorsData] = await Promise.all([
+                            fetch(programIndicatorsUrl).then(res => res.json()),
+                            fetch(indicatorsUrl).then(res => res.json())
+                        ]);
+
+                        if (programIndicatorsData?.programIndicators) {
+                            indicators = indicators.concat(programIndicatorsData.programIndicators);
+                        }
+                        if (indicatorsData?.indicators) {
+                            indicators = indicators.concat(indicatorsData.indicators);
+                        }   
+
+                        
                         const categoryOptionCombos = indicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
                         let counters = {};
@@ -672,7 +410,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setIsLoading(false); 
 
               
-            }
+            } 
+        
 
              
         } catch (err) {
