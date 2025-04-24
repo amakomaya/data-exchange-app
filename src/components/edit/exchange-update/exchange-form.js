@@ -68,6 +68,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [isLoading, setIsLoading] = useState(false); 
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
+    const [dataElements, setDataElements] = useState([]);
     const [peInfo, setPeInfo] = useState('');
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
@@ -164,9 +165,15 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             indicators = indicators.concat(indicatorsData.indicators);
                         }   
 
-                        
                         const categoryOptionCombos = indicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
+
+                        const dataElements = indicators.map(indicator => {
+                            const attr = indicator.attributeValues?.find(attrVal => attrVal.attribute.id === "b8KbU93phhz");
+                            return attr?.value;
+                        });
+                        setDataElements(dataElements); 
+
                         let counters = {};
                        
                         const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
@@ -530,7 +537,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setIsLoading(false)
                 return;
             }
-    
+
             const orgUnitData = await orgUnitResponse.json();
             const orgUnitCode = orgUnitData.code;
             let dataValue = [];
@@ -546,7 +553,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 });
             } else {
                 dataValue = analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
-                    dataElement,
+                    dataElement : dataElements[index],
                     categoryOptionCombo: categoryOptionCombos[index],
                     value: parseInt(rowValue, 10),
                 }));
