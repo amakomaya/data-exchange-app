@@ -68,6 +68,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [isLoading, setIsLoading] = useState(false); 
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
+    const [dataElements, setDataElements] = useState([]);
     const [peInfo, setPeInfo] = useState('');
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
@@ -124,10 +125,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     values,
                     requests,
                 });
-                let targetUrl = formattedValues?.target?.api.url
-                if (targetUrl && !targetUrl.endsWith('/')) {
-                    targetUrl += '/';
-                }
+                // let targetUrl = "https://hmis.gov.np/hmis/";
+                let targetUrl = "https://hmis.amakomaya.com/";
+
+                // let targetUrl = formattedValues?.target?.api.url
+                // if (targetUrl && !targetUrl.endsWith('/')) {
+                //     targetUrl += '/';
+                // }
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -164,9 +168,17 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             indicators = indicators.concat(indicatorsData.indicators);
                         }   
 
-                        
                         const categoryOptionCombos = indicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
+                        console.log(indicators,'indicators')
+
+                        const dataElements = indicators.map(indicator => {
+                            const attr = indicator.attributeValues?.find(attrVal => attrVal.attribute.id === "b8KbU93phhz");
+
+                            return attr?.value;
+                        });
+                        setDataElements(dataElements); 
+
                         let counters = {};
                        
                         const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
@@ -497,7 +509,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
-            let targetUrl = dataValues?.target?.api.url;
+            // let targetUrl = dataValues?.target?.api.url;
+            // let targetUrl = 'https://hmis.gov.np/hmis/';
+            let targetUrl = 'https://hmis.amakomaya.com/';
+
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
             const accessToken = dataValues?.target?.api.accessToken;
@@ -530,11 +545,11 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setIsLoading(false)
                 return;
             }
-    
+
             const orgUnitData = await orgUnitResponse.json();
             const orgUnitCode = orgUnitData.code;
             let dataValue = [];
-
+           
             if (selectedDataset === 'JduJyrFWhhJ') {
                 dataValue = Object.entries(counterRows).map(([key, value]) => {
                     const [dataElement, categoryOptionCombo] = key.split('-').slice(0, 2);
@@ -546,7 +561,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 });
             } else {
                 dataValue = analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
-                    dataElement,
+                    dataElement : dataElements[index],
                     categoryOptionCombo: categoryOptionCombos[index],
                     value: parseInt(rowValue, 10),
                 }));
@@ -555,7 +570,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
             const payload = {
                 dataSet: selectedDataset,
-                // completeDate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 completeDate: moment().format('YYYY-MM-DD'),
                 period: peInfo,
                 orgUnitIdScheme: 'code',
