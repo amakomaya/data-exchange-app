@@ -68,6 +68,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [isLoading, setIsLoading] = useState(false); 
     const [analyticsRows, setAnalyticsRows] = useState([]);
     const [categoryOptionCombos, setCategoryOptionCombos] = useState([]);
+    const [dataElements, setDataElements] = useState([]);
     const [peInfo, setPeInfo] = useState('');
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
@@ -77,6 +78,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [counterRows, setcounterRows] = useState({});
     const [isSyncStatusOpen, setSyncStatusOpen] = useState(false);
     const [statusData, setstatusData] = useState([]);
+    const [results, setresults] = useState([]);
+
 
 
     const handleRowClick = (id) => {
@@ -124,10 +127,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     values,
                     requests,
                 });
-                let targetUrl = formattedValues?.target?.api.url
-                if (targetUrl && !targetUrl.endsWith('/')) {
-                    targetUrl += '/';
-                }
+                let targetUrl = "https://hmis.gov.np/hmis/";
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -164,9 +164,16 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             indicators = indicators.concat(indicatorsData.indicators);
                         }   
 
-                        
                         const categoryOptionCombos = indicators.map(indicator => indicator.aggregateExportCategoryOptionCombo);
                         setCategoryOptionCombos(categoryOptionCombos); 
+
+                        const dataElements = indicators.map(indicator => {
+                            const attr = indicator.attributeValues?.find(attrVal => attrVal.attribute.id === "b8KbU93phhz");
+                            return attr?.value;
+                        });
+                       
+                        setDataElements(dataElements); 
+
                         let counters = {};
                        
                         const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
@@ -255,6 +262,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
                             });
                         });
+                        setresults(result)
                         if (username && password) {
                             const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
                                 method: 'GET',
@@ -497,7 +505,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
-            let targetUrl = dataValues?.target?.api.url;
+            let targetUrl = 'https://hmis.gov.np/hmis/';
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
             const accessToken = dataValues?.target?.api.accessToken;
@@ -530,11 +538,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 setIsLoading(false)
                 return;
             }
-    
+
             const orgUnitData = await orgUnitResponse.json();
             const orgUnitCode = orgUnitData.code;
             let dataValue = [];
 
+           
             if (selectedDataset === 'JduJyrFWhhJ') {
                 dataValue = Object.entries(counterRows).map(([key, value]) => {
                     const [dataElement, categoryOptionCombo] = key.split('-').slice(0, 2);
@@ -545,17 +554,19 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     };
                 });
             } else {
-                dataValue = analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
-                    dataElement,
-                    categoryOptionCombo: categoryOptionCombos[index],
-                    value: parseInt(rowValue, 10),
-                }));
+                dataValue = Object.entries(results).map(([key, value]) => {
+                    const [dataElement, categoryOptionCombo] = key.split('-');
+                    return {
+                      dataElement,
+                      categoryOptionCombo,
+                      value: Number(value)
+                    };
+                  });
             }
-
-
+           
+            
             const payload = {
                 dataSet: selectedDataset,
-                // completeDate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 completeDate: moment().format('YYYY-MM-DD'),
                 period: peInfo,
                 orgUnitIdScheme: 'code',
@@ -716,17 +727,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                                 {error.message}
                                             </NoticeBox>
                                         )}
-                                        {/* {err && showError && (
-                                        <NoticeBox
-                                            error
-                                            title="Error"
-                                            className={
-                                                styles.errorBoxContainer
-                                            }
-                                        >
-                                            {err.message}
-                                        </NoticeBox>
-                                    )} */}
+                                       
                                         {!saving && (
                                             <ExchangeFormContents
                                                 requestsState={requestsState}
@@ -827,7 +828,6 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 </div>
                 <h3 style={{ margin: '0' }}>Select a Program</h3>
 
-
                     <div style={{display:'flex'}}>
                         <table
                             style={{
@@ -890,39 +890,43 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 overflowX:'auto'
                             }}>
                                 {datasetDetails && (
-                                            <div>
-                                                <p><strong>Organization Unit:{orgUnit}</strong></p>
+                                    <div>
+                                        <form>
+                                                                             
+                                            <p><strong>Organization Unit:{orgUnit}</strong></p>
                                                 <p><strong>Periods:{period}</strong></p>
 
                                                 <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
-                                            </div>
-                                        )}
+                                                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                                <Button
+                                                    style={{
+                                                        padding: '10px 15px',
+                                                        border: 'none',
+                                                        borderRadius: '5px',
+                                                        cursor: 'pointer',
+                                                        marginRight: '10px',
+                                                    }}
+                                                    primary
+                                                    onClick={handleConfirm}
+                                                >
+                                                    {i18n.t('Confirm and Send')}
+
+
+                                                </Button>
+                                                
+                                                </div>
+                                        </form>
+
+                                     </div>
+                                )}
 
                             </div>
                     </div>
 
 
               
-                   
 
-                    <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button
-                            style={{
-                                padding: '10px 15px',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                marginRight: '10px',
-                            }}
-                            primary
-                            onClick={handleConfirm}
-                        >
-                            {i18n.t('Confirm and Send')}
-
-
-                        </Button>
-                        
-                    </div>
+                    
                 </div>
             )}
            
