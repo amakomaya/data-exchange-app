@@ -117,12 +117,17 @@ export const ExchangeFormContents = React.memo(
                             data-test="exchange-url"
                         >
                         
-                           
+                                                   
                            <InputField
                                 label="Target URL"
                                 value="HMIS System: https://hmis.gov.np/hmis"
                                 disabled
                             />
+                            {/* <InputField
+                                label="Target URL"
+                                value="TEST HMIS: https://hmis.amakomaya.com/"
+                                disabled
+                            /> */}
 
                 
                         </div>

@@ -72,6 +72,7 @@ export const useUpdateExchange = ({ onComplete }) => {
                     requests,
                 });
                 let targetUrl = 'https://hmis.gov.np/hmis/'
+                // let targetUrl = "https://hmis.amakomaya.com/";
 
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password

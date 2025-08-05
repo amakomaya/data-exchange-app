@@ -81,6 +81,13 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [results, setresults] = useState([]);
 
 
+    useEffect(() => {
+        if (error) {
+            const errorMessage =
+                'We are currently experiencing difficulties connecting to the HMIS server (hmis.gov.np/hmis). This may be due to server maintenance, high traffic, or temporary unavailability.';
+            setError({ message: errorMessage });
+        }
+    }, [err, setError]);
 
     const handleRowClick = (id) => {
         setSelectedDataset(id)
@@ -128,6 +135,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     requests,
                 });
                 let targetUrl = "https://hmis.gov.np/hmis/";
+                // let targetUrl = "https://hmis.amakomaya.com/";
+
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -370,8 +379,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
-                                        .replace(/\\/g, '')
-                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+                                        .replace(/\\/g, '');
 
                         
                                     return updatedHtml;
@@ -449,7 +457,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     // const OpenLogModal =async() =>{
     //     const { values, requestsState } = modalData;
     //     const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
-    //     let targetUrl = dataValues?.target?.api.url;
+    //     dataValues?.target?.api.url;
     //         const username = dataValues?.target?.api.username;
     //         const password = dataValues?.target?.api.password;
     //         const accessToken = dataValues?.target?.api.accessToken;
@@ -506,6 +514,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
             let targetUrl = 'https://hmis.gov.np/hmis/';
+            // let targetUrl = "https://hmis.amakomaya.com/";
+
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
             const accessToken = dataValues?.target?.api.accessToken;
@@ -574,7 +584,47 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 dataValues: dataValue
             };
             let dataValueResponse;
-            if (username && password) {
+            if (<div
+                style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    marginBottom: '20px',
+                    marginLeft: '50px',
+                    float: 'right',
+                    overflowX: 'auto',
+                }}
+            >
+                {datasetDetails ? (
+                    <div>
+                        <form>
+                            <p><strong>Organization Unit: {orgUnit}</strong></p>
+                            <p><strong>Periods: {period}</strong></p>
+            
+                            <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button
+                                    style={{
+                                        padding: '10px 15px',
+                                        border: 'none',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer',
+                                        marginRight: '10px',
+                                    }}
+                                    primary
+                                    onClick={handleConfirm}
+                                >
+                                    {i18n.t('Confirm and Send')}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                ) : (
+                    <span data-test="saving-exchange-loader">
+                        <Loader />
+                    </span>
+                )}
+            </div>
+             && password) {
                 dataValueResponse = await fetch(`${targetUrl}api/dataValueSets`, {
                     method: 'POST',
                     headers: {
@@ -826,7 +876,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         {i18n.t('Sync Status')}
                     </Button> */}
                 </div>
-                <h3 style={{ margin: '0' }}>Select a Program</h3>
+                <h3 style={{ margin: '0', fontSize:'12px' }}>Select a Program</h3>
 
                     <div style={{display:'flex'}}>
                         <table
@@ -846,6 +896,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             padding: '10px',
                                             border: '1px solid #ccc',
                                             textAlign: 'center',
+                                            fontSize:'12px'
                                         }}
                                     >
                                         Dataset Name
@@ -868,6 +919,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             style={{
                                                 padding: '10px',
                                                 border: '1px solid #ccc',
+                                                fontSize:'12px'
                                             }}
 
                                         >
@@ -881,46 +933,49 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         </table>
 
                     
-                            <div style={{
+                           
+                            
+                        <div
+                            style={{
                                 width: '100%',
                                 borderCollapse: 'collapse',
                                 marginBottom: '20px',
-                                marginLeft:'50px',
-                                float:'right',
-                                overflowX:'auto'
-                            }}>
-                                {datasetDetails && (
-                                    <div>
-                                        <form>
-                                                                             
-                                            <p><strong>Organization Unit:{orgUnit}</strong></p>
-                                                <p><strong>Periods:{period}</strong></p>
+                                marginLeft: '50px',
+                                float: 'right',
+                                overflowX: 'auto',
+                            }}
+                        >
+                            {datasetDetails ? (
+                                <div>
+                                    <form>
+                                        <p><strong style={{fontSize:'12px'}}>Organization Unit: {orgUnit}</strong></p>
+                                        <p><strong style={{fontSize:'12px'}}>Periods: {period}</strong></p>
 
-                                                <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
-                                                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
-                                                <Button
-                                                    style={{
-                                                        padding: '10px 15px',
-                                                        border: 'none',
-                                                        borderRadius: '5px',
-                                                        cursor: 'pointer',
-                                                        marginRight: '10px',
-                                                    }}
-                                                    primary
-                                                    onClick={handleConfirm}
-                                                >
-                                                    {i18n.t('Confirm and Send')}
+                                        <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                                        <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button
+                                                style={{
+                                                    padding: '10px 15px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    cursor: 'pointer',
+                                                    marginRight: '10px',
+                                                }}
+                                                primary
+                                                onClick={handleConfirm}
+                                            >
+                                                {i18n.t('Confirm and Send')}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </div>
+                            ) : (
+                                <span data-test="saving-exchange-loader">
+                                    <Loader />
+                                </span>
+                            )}
+                        </div>
 
-
-                                                </Button>
-                                                
-                                                </div>
-                                        </form>
-
-                                     </div>
-                                )}
-
-                            </div>
                     </div>
 
 
