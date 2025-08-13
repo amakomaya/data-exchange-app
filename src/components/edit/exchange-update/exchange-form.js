@@ -17,6 +17,7 @@ import { config } from '../../../config';
 import moment from 'moment';
 
 import { useUpdateExchange } from './useUpdateExchange.js'
+import { adToBs } from '@sbmdkl/nepali-date-converter'
 
 const { Form } = ReactFinalForm
 
@@ -79,6 +80,10 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [isSyncStatusOpen, setSyncStatusOpen] = useState(false);
     const [statusData, setstatusData] = useState([]);
     const [results, setresults] = useState([]);
+    const [dataSendStatus, setdataSendStatus] = useState(false);
+    const [dataSendDate, setdataSendDate] = useState(' ');
+
+
 
 
     useEffect(() => {
@@ -190,6 +195,59 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         const fetchedreportData = await reportData.json();
                         const reportRows = fetchedreportData.listGrid.rows;
                         setReportingStatusRows(reportRows)
+                        let orgUnitID = null;
+                        if (selectedDataset === 'JduJyrFWhhJ' && reportRows.length > 0) {
+                            reportRows.forEach((row) => {
+                                orgUnitID = row[3];
+                            });
+                        } else {
+                            rows.forEach((row) => {
+                                orgUnitID = row[1];
+                            });
+                        }
+                        const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
+                            method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+
+                        const orgUnitData = await orgUnitResponse.json();
+                        const orgUnitCode = orgUnitData.code;
+
+                        const fetchedorgUnitID = await fetch(`${targetUrl}api/organisationUnits.json?filter=code:eq:${orgUnitCode}&fields=id,name,code`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                            },
+                        });
+                        const targetOrgUnitData = await fetchedorgUnitID.json();
+                        const targetorgUnitID = targetOrgUnitData.organisationUnits[0].id;
+
+                        const fetchRegistrationResponse = await fetch(`${targetUrl}api/completeDataSetRegistrations.json?period=${peInfo}&dataSet=${selectedDataset}&orgUnit=${targetorgUnitID}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                            },
+                        });
+        
+                        const completeRegistration = await fetchRegistrationResponse.json();
+                        if (
+                            completeRegistration.completeDataSetRegistrations &&
+                            completeRegistration.completeDataSetRegistrations[0].completed == true
+                        ) {
+                            const dataSendDate_en = completeRegistration.completeDataSetRegistrations[0].date;
+                            const dataSendDate_np = adToBs(dataSendDate_en);
+                            setdataSendStatus(true);
+                            setdataSendDate (dataSendDate_np);
+                        }
+                        else{
+                            setdataSendStatus(false);
+
+                        }
+                        
                         const keyMappings = {
                             "0_9_YEARS-female": "XjuXeaVPUsr-I1gylzOskBs-val",
                             "0_9_YEARS-male": "XjuXeaVPUsr-TTNFd2X49S6-val",
@@ -272,6 +330,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             });
                         });
                         setresults(result)
+                  
+
+
                         if (username && password) {
                             const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
                                 method: 'GET',
@@ -513,8 +574,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
-            let targetUrl = 'https://hmis.gov.np/hmis/';
-            // let targetUrl = "https://hmis.amakomaya.com/";
+            // let targetUrl = 'https://hmis.gov.np/hmis/';
+            let targetUrl = "https://hmis.amakomaya.com/";
 
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
@@ -945,11 +1006,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 overflowX: 'auto',
                             }}
                         >
-                            {datasetDetails ? (
+                            {/* {datasetDetails ? (
                                 <div>
                                     <form>
                                         <p><strong style={{fontSize:'12px'}}>Organization Unit: {orgUnit}</strong></p>
                                         <p><strong style={{fontSize:'12px'}}>Periods: {period}</strong></p>
+
 
                                         <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
                                         <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -973,7 +1035,99 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 <span data-test="saving-exchange-loader">
                                     <Loader />
                                 </span>
+                            )} */}
+
+                            {datasetDetails ? (
+                                <div>
+                                    <form>
+                                        <p>
+                                            <strong style={{ fontSize: '12px' }}>
+                                                Organization Unit: {orgUnit}
+                                            </strong>
+                                        </p>
+                                        <p>
+                                            <strong style={{ fontSize: '12px' }}>
+                                                Periods: {period}
+                                            </strong>
+                                        </p>
+
+                                        <Button
+                                                style={{
+                                                    padding: '10px 15px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    cursor: 'pointer',
+                                                    marginRight: '10px',
+                                                    boxShadow: '0 0 10px #4cafef', 
+                                                    backgroundColor: '#2196f3',
+                                                    color: '#fff',
+                                                    transition: '0.3s',
+                                                    alignItems:'flex-end',
+                                                    marginBottom:'10px'
+                                                }}
+                                            >
+                                                Open
+                                            </Button>
+
+                                        <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                                       {dataSendStatus ?(
+                                           <p> <strong style={{fontSize:'12px'}}>यो महिनाको डाटा सेटको डाटा मिति {dataSendDate} मा पठाईसकेको छ । तपाईले पूर्ण पठाउन चाहेमा "Confirm and Send " मा किल्क गर्नुहोस् । </strong></p>
+                                       ):<p> <strong style={{fontSize:'12px'}}>यो महिनाको डाटा सेटको डाटा हाल सम्म पठाइएको छैन । </strong></p>} 
+                                        <div
+                                            style={{
+                                                marginTop: '15px',
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                            }}
+                                        >
+                                            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                                                        <Button
+                                                                            style={{
+                                                                                padding: '10px 15px',
+                                                                                border: 'none',
+                                                                                borderRadius: '5px',
+                                                                                cursor: 'pointer',
+                                                                                marginRight: '10px',
+                                                                            }}
+                                                                            primary
+                                                                            onClick={handleConfirm}
+                                                                        >
+                                                                            {i18n.t('Confirm and Send')}
+                                                                        </Button>
+                                                                    </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        flexDirection: 'column',
+                                    }}
+                                >
+                                    <span data-test="saving-exchange-loader">
+                                        <Loader />
+                                    </span>
+                                    <Button
+                                        style={{
+                                            padding: '10px 15px',
+                                            border: 'none',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            marginTop: '15px',
+                                            boxShadow: '0 0 10px #ff4c4c', // glow effect
+                                            backgroundColor: '#f44336',
+                                            color: '#fff',
+                                            transition: '0.3s',
+                                        }}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
                             )}
+
                         </div>
 
                     </div>
