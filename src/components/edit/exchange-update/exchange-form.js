@@ -17,6 +17,7 @@ import { config } from '../../../config';
 import moment from 'moment';
 
 import { useUpdateExchange } from './useUpdateExchange.js'
+import { adToBs } from '@sbmdkl/nepali-date-converter'
 
 const { Form } = ReactFinalForm
 
@@ -78,7 +79,20 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [counterRows, setcounterRows] = useState({});
     const [isSyncStatusOpen, setSyncStatusOpen] = useState(false);
     const [statusData, setstatusData] = useState([]);
+    const [results, setresults] = useState([]);
+    const [dataSendStatus, setdataSendStatus] = useState(false);
+    const [dataSendDate, setdataSendDate] = useState(' ');
 
+
+
+
+    useEffect(() => {
+        if (error) {
+            const errorMessage =
+                'We are currently experiencing difficulties connecting to the HMIS server (hmis.gov.np/hmis). This may be due to server maintenance, high traffic, or temporary unavailability.';
+            setError({ message: errorMessage });
+        }
+    }, [err, setError]);
 
     const handleRowClick = (id) => {
         setSelectedDataset(id)
@@ -125,10 +139,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     values,
                     requests,
                 });
-                let targetUrl = formattedValues?.target?.api.url
-                if (targetUrl && !targetUrl.endsWith('/')) {
-                    targetUrl += '/';
-                }
+                let targetUrl = "https://hmis.gov.np/hmis/";
+                // let targetUrl = "https://hmis.amakomaya.com/";
+
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -172,6 +185,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                             const attr = indicator.attributeValues?.find(attrVal => attrVal.attribute.id === "b8KbU93phhz");
                             return attr?.value;
                         });
+                       
                         setDataElements(dataElements); 
 
                         let counters = {};
@@ -181,6 +195,59 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         const fetchedreportData = await reportData.json();
                         const reportRows = fetchedreportData.listGrid.rows;
                         setReportingStatusRows(reportRows)
+                        let orgUnitID = null;
+                        if (selectedDataset === 'JduJyrFWhhJ' && reportRows.length > 0) {
+                            reportRows.forEach((row) => {
+                                orgUnitID = row[3];
+                            });
+                        } else {
+                            rows.forEach((row) => {
+                                orgUnitID = row[1];
+                            });
+                        }
+                        const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
+                            method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+
+                        const orgUnitData = await orgUnitResponse.json();
+                        const orgUnitCode = orgUnitData.code;
+
+                        const fetchedorgUnitID = await fetch(`${targetUrl}api/organisationUnits.json?filter=code:eq:${orgUnitCode}&fields=id,name,code`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                            },
+                        });
+                        const targetOrgUnitData = await fetchedorgUnitID.json();
+                        const targetorgUnitID = targetOrgUnitData.organisationUnits[0].id;
+
+                        const fetchRegistrationResponse = await fetch(`${targetUrl}api/completeDataSetRegistrations.json?period=${peInfo}&dataSet=${selectedDataset}&orgUnit=${targetorgUnitID}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic ' + btoa(`${username}:${password}`) 
+                            },
+                        });
+        
+                        const completeRegistration = await fetchRegistrationResponse.json();
+                        if (
+                            completeRegistration.completeDataSetRegistrations &&
+                            completeRegistration.completeDataSetRegistrations[0].completed == true
+                        ) {
+                            const dataSendDate_en = completeRegistration.completeDataSetRegistrations[0].date;
+                            const dataSendDate_np = adToBs(dataSendDate_en);
+                            setdataSendStatus(true);
+                            setdataSendDate (dataSendDate_np);
+                        }
+                        else{
+                            setdataSendStatus(false);
+
+                        }
+                        
                         const keyMappings = {
                             "0_9_YEARS-female": "XjuXeaVPUsr-I1gylzOskBs-val",
                             "0_9_YEARS-male": "XjuXeaVPUsr-TTNFd2X49S6-val",
@@ -262,6 +329,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     
                             });
                         });
+                        setresults(result)
+
                         if (username && password) {
                             const fetchResponse = await fetch(`${targetUrl}api/dataSets/${selectedDataset}/metadata.json`, {
                                 method: 'GET',
@@ -369,8 +438,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                     let updatedHtml = form.htmlCode
                                         .replace(/\\n/g, '')
                                         .replace(/\\t/g, '')
-                                        .replace(/\\/g, '')
-                                        .replace(/<input\b([^>]*)>/g, '<input$1 disabled>');
+                                        .replace(/\\/g, '');
 
                         
                                     return updatedHtml;
@@ -448,7 +516,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     // const OpenLogModal =async() =>{
     //     const { values, requestsState } = modalData;
     //     const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
-    //     let targetUrl = dataValues?.target?.api.url;
+    //     dataValues?.target?.api.url;
     //         const username = dataValues?.target?.api.username;
     //         const password = dataValues?.target?.api.password;
     //         const accessToken = dataValues?.target?.api.accessToken;
@@ -504,7 +572,9 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const { values, requestsState } = modalData;
             const dataValues = getExchangeValuesFromForm({ values, requests: requestsState });
             const baseUrl = config.baseUrl;            
-            let targetUrl = dataValues?.target?.api.url;
+            let targetUrl = 'https://hmis.gov.np/hmis/';
+            // let targetUrl = "https://hmis.amakomaya.com/";
+
             const username = dataValues?.target?.api.username;
             const password = dataValues?.target?.api.password;
             const accessToken = dataValues?.target?.api.accessToken;
@@ -542,6 +612,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
             const orgUnitCode = orgUnitData.code;
             let dataValue = [];
 
+           
             if (selectedDataset === 'JduJyrFWhhJ') {
                 dataValue = Object.entries(counterRows).map(([key, value]) => {
                     const [dataElement, categoryOptionCombo] = key.split('-').slice(0, 2);
@@ -552,17 +623,19 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     };
                 });
             } else {
-                dataValue = analyticsRows.map(([dataElement, orgUnit, rowValue], index) => ({
-                    dataElement : dataElements[index],
-                    categoryOptionCombo: categoryOptionCombos[index],
-                    value: parseInt(rowValue, 10),
-                }));
+                dataValue = Object.entries(results).map(([key, value]) => {
+                    const [dataElement, categoryOptionCombo] = key.split('-');
+                    return {
+                      dataElement,
+                      categoryOptionCombo,
+                      value: Number(value)
+                    };
+                  });
             }
-
-
+           
+            
             const payload = {
                 dataSet: selectedDataset,
-                // completeDate: moment().format('YYYY-MM-DD HH:mm:ss'),
                 completeDate: moment().format('YYYY-MM-DD'),
                 period: peInfo,
                 orgUnitIdScheme: 'code',
@@ -570,7 +643,47 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 dataValues: dataValue
             };
             let dataValueResponse;
-            if (username && password) {
+            if (<div
+                style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    marginBottom: '20px',
+                    marginLeft: '50px',
+                    float: 'right',
+                    overflowX: 'auto',
+                }}
+            >
+                {datasetDetails ? (
+                    <div>
+                        <form>
+                            <p><strong>Organization Unit: {orgUnit}</strong></p>
+                            <p><strong>Periods: {period}</strong></p>
+            
+                            <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button
+                                    style={{
+                                        padding: '10px 15px',
+                                        border: 'none',
+                                        borderRadius: '5px',
+                                        cursor: 'pointer',
+                                        marginRight: '10px',
+                                    }}
+                                    primary
+                                    onClick={handleConfirm}
+                                >
+                                    {i18n.t('Confirm and Send')}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                ) : (
+                    <span data-test="saving-exchange-loader">
+                        <Loader />
+                    </span>
+                )}
+            </div>
+             && password) {
                 dataValueResponse = await fetch(`${targetUrl}api/dataValueSets`, {
                     method: 'POST',
                     headers: {
@@ -723,17 +836,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                                 {error.message}
                                             </NoticeBox>
                                         )}
-                                        {/* {err && showError && (
-                                        <NoticeBox
-                                            error
-                                            title="Error"
-                                            className={
-                                                styles.errorBoxContainer
-                                            }
-                                        >
-                                            {err.message}
-                                        </NoticeBox>
-                                    )} */}
+                                       
                                         {!saving && (
                                             <ExchangeFormContents
                                                 requestsState={requestsState}
@@ -832,8 +935,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         {i18n.t('Sync Status')}
                     </Button> */}
                 </div>
-                <h3 style={{ margin: '0' }}>Select a Program</h3>
-
+                <h3 style={{ margin: '0', fontSize:'12px' }}>Select a Program</h3>
 
                     <div style={{display:'flex'}}>
                         <table
@@ -853,6 +955,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             padding: '10px',
                                             border: '1px solid #ccc',
                                             textAlign: 'center',
+                                            fontSize:'12px'
                                         }}
                                     >
                                         Dataset Name
@@ -875,6 +978,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             style={{
                                                 padding: '10px',
                                                 border: '1px solid #ccc',
+                                                fontSize:'12px'
                                             }}
 
                                         >
@@ -888,48 +992,148 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         </table>
 
                     
-                            <div style={{
+                           
+                            
+                        <div
+                            style={{
                                 width: '100%',
                                 borderCollapse: 'collapse',
                                 marginBottom: '20px',
-                                marginLeft:'50px',
-                                float:'right',
-                                overflowX:'auto'
-                            }}>
-                                {datasetDetails && (
-                                            <div>
-                                                <p><strong>Organization Unit:{orgUnit}</strong></p>
-                                                <p><strong>Periods:{period}</strong></p>
+                                marginLeft: '50px',
+                                float: 'right',
+                                overflowX: 'auto',
+                            }}
+                        >
+                            {/* {datasetDetails ? (
+                                <div>
+                                    <form>
+                                        <p><strong style={{fontSize:'12px'}}>Organization Unit: {orgUnit}</strong></p>
+                                        <p><strong style={{fontSize:'12px'}}>Periods: {period}</strong></p>
 
-                                                <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
-                                            </div>
-                                        )}
 
-                            </div>
+                                        <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                                        <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button
+                                                style={{
+                                                    padding: '10px 15px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    cursor: 'pointer',
+                                                    marginRight: '10px',
+                                                }}
+                                                primary
+                                                onClick={handleConfirm}
+                                            >
+                                                {i18n.t('Confirm and Send')}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </div>
+                            ) : (
+                                <span data-test="saving-exchange-loader">
+                                    <Loader />
+                                </span>
+                            )} */}
+
+                            {datasetDetails ? (
+                                <div>
+                                    <form>
+                                        <p>
+                                            <strong style={{ fontSize: '12px' }}>
+                                                Organization Unit: {orgUnit}
+                                            </strong>
+                                        </p>
+                                        <p>
+                                            <strong style={{ fontSize: '12px' }}>
+                                                Periods: {period}
+                                            </strong>
+                                        </p>
+
+                                        {/* <Button
+                                                style={{
+                                                    padding: '10px 15px',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    cursor: 'pointer',
+                                                    marginRight: '10px',
+                                                    boxShadow: '0 0 10px #4cafef', 
+                                                    backgroundColor: '#2196f3',
+                                                    color: '#fff',
+                                                    transition: '0.3s',
+                                                    alignItems:'flex-end',
+                                                    marginBottom:'10px'
+                                                }}
+                                            >
+                                                Open
+                                            </Button> */}
+
+                                        <div dangerouslySetInnerHTML={{ __html: datasetDetails }} />
+                                       {dataSendStatus ?(
+                                           <p> <strong style={{fontSize:'12px'}}>यो महिनाको डाटा सेटको डाटा मिति {dataSendDate} मा पठाईसकेको छ । तपाईले पूर्ण पठाउन चाहेमा "Confirm and Send " मा किल्क गर्नुहोस् । </strong></p>
+                                       ):<p> <strong style={{fontSize:'12px'}}>यो महिनाको डाटा सेटको डाटा हाल सम्म पठाइएको छैन । </strong></p>} 
+                                        <div
+                                            style={{
+                                                marginTop: '15px',
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                            }}
+                                        >
+                                            <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
+                                                                        <Button
+                                                                            style={{
+                                                                                padding: '10px 15px',
+                                                                                border: 'none',
+                                                                                borderRadius: '5px',
+                                                                                cursor: 'pointer',
+                                                                                marginRight: '10px',
+                                                                            }}
+                                                                            primary
+                                                                            onClick={handleConfirm}
+                                                                        >
+                                                                            {i18n.t('Confirm and Send')}
+                                                                        </Button>
+                                                                    </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        flexDirection: 'column',
+                                    }}
+                                >
+                                    <span data-test="saving-exchange-loader">
+                                        <Loader />
+                                    </span>
+                                    <Button
+                                        style={{
+                                            padding: '10px 15px',
+                                            border: 'none',
+                                            borderRadius: '5px',
+                                            cursor: 'pointer',
+                                            marginTop: '15px',
+                                            boxShadow: '0 0 10px #ff4c4c', // glow effect
+                                            backgroundColor: '#f44336',
+                                            color: '#fff',
+                                            transition: '0.3s',
+                                        }}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
+                            )}
+
+                        </div>
+
                     </div>
 
 
               
-                   
 
-                    <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button
-                            style={{
-                                padding: '10px 15px',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                marginRight: '10px',
-                            }}
-                            primary
-                            onClick={handleConfirm}
-                        >
-                            {i18n.t('Confirm and Send')}
-
-
-                        </Button>
-                        
-                    </div>
+                    
                 </div>
             )}
            

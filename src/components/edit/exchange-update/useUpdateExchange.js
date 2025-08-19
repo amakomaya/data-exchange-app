@@ -71,13 +71,9 @@ export const useUpdateExchange = ({ onComplete }) => {
                     values,
                     requests,
                 });
-                let targetUrl = formattedValues?.target?.api.url
-                if(!targetUrl){
-                    targetUrl = 'https://hmis.gov.np/hmis'
-                }
-                if (targetUrl && !targetUrl.endsWith('/')) {
-                    targetUrl += '/';
-                }
+                let targetUrl = 'https://hmis.gov.np/hmis/'
+                // let targetUrl = "https://hmis.amakomaya.com/";
+
                 const username = formattedValues?.target?.api.username
                 const password = formattedValues?.target?.api.password
                 const accessToken =formattedValues?.target?.api.accessToken
@@ -153,7 +149,6 @@ export const useUpdateExchange = ({ onComplete }) => {
 
     return [refetch, { loading, error }];
 };
-
 
 
 

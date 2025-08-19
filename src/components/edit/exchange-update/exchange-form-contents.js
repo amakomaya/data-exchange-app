@@ -14,6 +14,8 @@ import classnames from 'classnames'
 import PropTypes from 'prop-types'
 import React, { useMemo, useState } from 'react'
 import { Warning } from '../../common/index.js'
+import { InputField } from '@dhis2/ui'
+
 import {
     SchemeSelector,
     Subsection,
@@ -115,42 +117,19 @@ export const ExchangeFormContents = React.memo(
                             data-test="exchange-url"
                         >
                         
-                           
-                            <Field
-                                name="url"
-                                label={i18n.t('Target URL')}
-                                // validate={hasValue}
-                            >
-                                {({ input, meta }) => (
-                                    
-                                    <SingleSelectField
-                                        label={i18n.t('Target URL')}
-                                        selected={input.value || 'https://hmis.gov.np/hmis'}
-                                        placeholder="Please select target url"
-                                        onChange={({ selected }) => input.onChange(selected)}
-                                        style={{width:'300px'}}
+                                                   
+                           <InputField
+                                label="Target URL"
+                                value="HMIS System: https://hmis.gov.np/hmis"
+                                disabled
+                            />
+                            {/* <InputField
+                                label="Target URL"
+                                value="TEST HMIS: https://hmis.amakomaya.com/"
+                                disabled
+                            /> */}
 
-                                    >
-                                        <SingleSelectOption 
-                                            value="https://hmis.gov.np/hmis"
-                                            label={i18n.t('HMIS System: https://hmis.gov.np/hmis')}
-                                        />
-
-                                        <SingleSelectOption
-                                            value="https://hmis.amakomaya.com"
-                                            label={i18n.t('Test System: https://hmis.amakomaya.com')}
-                                        />
-                                        <SingleSelectOption
-                                            value="http://202.166.205.218/hmisdemo"
-                                            label={i18n.t('Demo System: http://202.166.205.218/hmisdemo')}
-                                        />
-                                       {/* {meta.touched && meta.error && (
-                                                <span style={{ color: 'red', fontSize: '12px' }}>{meta.error}</span>
-                                            )} */}
-                                    </SingleSelectField>
-                                )}
-                            </Field>
-                        
+                
                         </div>
 
                         <div>

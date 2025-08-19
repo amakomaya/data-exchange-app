@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
-import { adToBs,bsToAd } from '@sbmdkl/nepali-date-converter';
-import moment from 'moment'; 
+import { adToBs, bsToAd } from '@sbmdkl/nepali-date-converter';
+import moment from 'moment';
 
 export const PeriodSelector = ({ input, meta }) => {
     const { value: selectedPeriods } = input;
+
     const nepaliMonths = [
         { name: "Baisakh", period: "01" },
         { name: "Jestha", period: "02" },
@@ -20,12 +21,13 @@ export const PeriodSelector = ({ input, meta }) => {
         { name: "Chaitra", period: "12" },
     ];
 
-     const currentDate = moment().format('YYYY-MM-DD');
+    const currentDate = moment().format('YYYY-MM-DD');
+    const bsToday = adToBs(currentDate); 
+    const [bsYear, bsMonth] = bsToday.split('-');
+    const currentNepaliMonth = parseInt(bsMonth); 
+    const currentNepaliYear = parseInt(bsYear);
 
-    const dateNP = adToBs(currentDate);
-    let nepYear = dateNP.substring(0, 4);
-
-    const initialYear = selectedPeriods?.[0]?.id.slice(0, 4) ||nepYear;
+    const initialYear = selectedPeriods?.[0]?.id.slice(0, 4) || bsYear;
     const initialMonth = selectedPeriods?.[0]?.id.slice(4, 6) || '';
 
     const [selectedYear, setSelectedYear] = useState(initialYear);
@@ -45,11 +47,10 @@ export const PeriodSelector = ({ input, meta }) => {
             const startofNextMonth = parseInt(selectedMonth) + 1;
             const startDateEN = `${selectedYear}-${selectedMonth}-01`;
             let endDateEN;
-            if (startofNextMonth == 13) {
-               const nextYear = parseInt(selectedYear) + 1;
-               endDateEN = `${nextYear}-01-01`
-            }
-            else{
+            if (startofNextMonth === 13) {
+                const nextYear = parseInt(selectedYear) + 1;
+                endDateEN = `${nextYear}-01-01`;
+            } else {
                 endDateEN = `${selectedYear}-${startofNextMonth.toString().padStart(2, '0')}-01`;
             }
 
@@ -88,6 +89,16 @@ export const PeriodSelector = ({ input, meta }) => {
         generatePeriodInfo();
     }, [selectedYear, selectedMonth]);
 
+    // Filter months based on selectedYear and current BS date
+    const filteredMonths = nepaliMonths.filter(month => {
+        const monthNumber = parseInt(month.period);
+        const yearNumber = parseInt(selectedYear);
+
+        if (yearNumber < currentNepaliYear) return true;
+        if (yearNumber === currentNepaliYear && monthNumber < currentNepaliMonth) return true;
+        return false;
+    });
+
     return (
         <>
             {/* Month Selector */}
@@ -95,16 +106,16 @@ export const PeriodSelector = ({ input, meta }) => {
                 onChange={handleMonthSelection}
                 value={selectedMonth}
                 style={{ width: '200px', padding: '10px', fontSize: '16px' }}
-                disabled={!selectedYear} 
+                disabled={!selectedYear}
             >
                 <option value="" disabled>Select a Month</option>
-                {nepaliMonths.map((month, index) => (
+                {filteredMonths.map((month, index) => (
                     <option key={index} value={month.period}>
                         {month.name} {selectedYear}
                     </option>
                 ))}
             </select>
-            
+
             {/* Year Selector */}
             <input
                 type="number"
@@ -113,7 +124,7 @@ export const PeriodSelector = ({ input, meta }) => {
                 style={{ width: '100px', padding: '10px', fontSize: '16px', marginLeft: '10px' }}
                 placeholder="Year"
             />
-            
+
             {/* Validation Message */}
             {validationMessage && <p style={{ color: 'red', marginTop: '10px' }}>{validationMessage}</p>}
         </>

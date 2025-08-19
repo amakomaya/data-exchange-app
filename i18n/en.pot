@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2025-01-24T05:57:55.843Z\n"
-"PO-Revision-Date: 2025-01-24T05:57:55.843Z\n"
+"POT-Creation-Date: 2025-08-05T06:44:46.581Z\n"
+"PO-Revision-Date: 2025-08-05T06:44:46.581Z\n"
 
 msgid "Editing the target setup will require you to reenter authentication details."
 msgstr "Editing the target setup will require you to reenter authentication details."
@@ -26,9 +26,6 @@ msgstr "Edit input ID scheme options"
 
 msgid "Target setup"
 msgstr "Target setup"
-
-msgid "Target URL"
-msgstr "Target URL"
 
 msgid "Authentication method"
 msgstr "Authentication method"
@@ -51,11 +48,14 @@ msgstr "Password"
 msgid "Request"
 msgstr "Request"
 
+msgid "Confirm and Send"
+msgstr "Confirm and Send"
+
 msgid "Reset"
 msgstr "Reset"
 
-msgid "Confirm and Send"
-msgstr "Confirm and Send"
+msgid "Sync Status"
+msgstr "Sync Status"
 
 msgid "Close"
 msgstr "Close"
