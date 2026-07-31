@@ -73,6 +73,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
     const [peInfo, setPeInfo] = useState('');
     const [period, setPeriod] = useState('');
     const [orgUnit, setorgUnit] = useState('');
+    const [ou, setoUnit] = useState('');
     const [err, setError] = useState('');
     const [showError, setShowError] = useState(!!error);
     const [reportingStatusRows, setReportingStatusRows] = useState([]);
@@ -149,6 +150,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                 const accessToken = formattedValues?.target?.api.accessToken
                 const request = formattedValues?.source?.requests[0];
                 const ou = request?.ou.join(';');
+                setoUnit(ou);
                 const periodData = request?.peInfo;
                 const peInfo = periodData[0].id;
                 setPeInfo(peInfo);
@@ -208,6 +210,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                         // const fetchedreportData = await reportData.json();
                         // const reportRows = fetchedreportData.listGrid.rows;
                         const reportRows = filteredAndSortedData;
+                        
 
                         setReportingStatusRows(reportRows)
                         let orgUnitID = null;
@@ -220,7 +223,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                 orgUnitID = row[1];
                             });
                         }
-
+                        orgUnitID = orgUnitID ?? ou;
                         const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
                             method: 'GET',
                             headers: {
@@ -610,7 +613,8 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                     orgUnitID = row[1];
                 });
             }
-            const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${orgUnitID}`, {
+            const targetOrgUnitID = orgUnitID ?? ou;
+            const orgUnitResponse = await fetch(`${baseUrl}/api/organisationUnits/${targetOrgUnitID}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1002,7 +1006,7 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
                                             backgroundColor: selectedDataset === id ? '#d0e6ff' : 'white',
 
                                         }}
-                                        onClick={() => handleRowClick(id)}
+                                        onClick={() => !isLoading && handleRowClick(id)}
                                         message
                                     >
                                         <td
