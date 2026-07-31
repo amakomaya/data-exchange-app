@@ -108,10 +108,12 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
         try {
             // const baseUrl = config.baseUrl;            
             const programIndicatorsEndpoint = '/api/programIndicators';
-            const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
+            // const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
+            const programIndicatorsUrl = `${baseUrl}${programIndicatorsEndpoint}?filter=q1EFKOJOh6C:eq:${selectedDataset}&paging=false`;
+
             const programIndicatorsData = await fetch(programIndicatorsUrl);
             const indicatorsEndpoint = '/api/indicators';
-            const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=attributeValues.value:eq:${selectedDataset}&paging=false`;
+            const indicatorsUrl = `${baseUrl}${indicatorsEndpoint}?filter=q1EFKOJOh6C:eq:${selectedDataset}&paging=false`;
             const indicatorsData = await fetch(indicatorsUrl);
 
 
@@ -190,10 +192,22 @@ export const ExchangeForm = ({ exchangeInfo, addMode }) => {
 
                         let counters = {};
 
-                        const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
-                        const reportData = await fetch(reportUrl);
-                        const fetchedreportData = await reportData.json();
-                        const reportRows = fetchedreportData.listGrid.rows;
+                        // const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&filter=occurreddate:ge:${startDate}&filter=occurreddate:le:${endDate}&paging=false`;
+                        const reportUrl = `${baseUrl}/api/sqlViews/MqE87cFhgmG/data?criteria=organisationunituid:${ou}&criteria=occurreddate:ge:${startDate}&criteria=occurreddate:le:${endDate}&paging=false`;
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        const response = await fetch(reportUrl);
+                        const reportData = await response.json();
+                        const dataRows = reportData.listGrid.rows || [];
+
+                        const filteredAndSortedData = dataRows
+                            .filter(row => {
+                                const rowDate = new Date(row[2]);;
+                                return rowDate >= start && rowDate <= end;
+                            })
+                        // const fetchedreportData = await reportData.json();
+                        // const reportRows = fetchedreportData.listGrid.rows;
+                        const reportRows = filteredAndSortedData;
 
                         setReportingStatusRows(reportRows)
                         let orgUnitID = null;
